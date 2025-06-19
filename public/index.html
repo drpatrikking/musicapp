@@ -92,6 +92,21 @@ function formatDuration(seconds) {
   return `${m}:${s}`;
 }
 
+let allAudioElements = [];
+
+function enableSinglePlayback() {
+  allAudioElements.forEach(audio => {
+    audio.addEventListener('play', () => {
+      allAudioElements.forEach(other => {
+        if (other !== audio && !other.paused) {
+          other.pause();
+        }
+      });
+    });
+  });
+}
+
+
 function showTracklist(album) {
   document.querySelector('.grid').style.display = 'none';
   document.getElementById('tracklist-title').textContent = `${album.album} – ${album.artist}`;
@@ -120,10 +135,16 @@ function showTracklist(album) {
     div.appendChild(info);
     div.appendChild(audio);
 
-    trackContainer.appendChild(div);
-  });
+      // Add all track blocks to container...
+  trackContainer.appendChild(div);
+});
 
-  document.getElementById('tracklist').style.display = 'block';
+// 🔊 Set up single-track playback
+allAudioElements = Array.from(document.querySelectorAll('audio'));
+enableSinglePlayback();
+
+document.getElementById('tracklist').style.display = 'block';
+
 
       document.getElementById('tracklist').style.display = 'block';
     }
