@@ -1,0 +1,23 @@
+{
+  "name": "musicapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drpatrikking/musicapp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/drpatrikking/musicapp/issues"
+  },
+  "homepage": "https://github.com/drpatrikking/musicapp#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

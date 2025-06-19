@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Music Streaming Server</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #111; color: #fff; }
+    .track { margin-bottom: 10px; }
+    audio { width: 100%; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h1>🎶 My Music</h1>
+  <div id="track-list">Loading...</div>
+
+  <script>
+    fetch("/api/tracks")
+      .then(res => res.json())
+      .then(tracks => {
+        const list = document.getElementById("track-list");
+        list.innerHTML = '';
+        tracks.forEach(track => {
+          const div = document.createElement("div");
+          div.className = "track";
+          div.innerHTML = `
+            <strong>${track.name}</strong><br />
+            <audio controls src="${track.url}"></audio>
+          `;
+          list.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>
