@@ -86,6 +86,67 @@ app.get("/api/tracks", async (req, res) => {
   res.json(tracks);
 });
 
+app.get("/api/albums", async (req, res) => {
+  const filePaths = getAllMusicFiles(musicDir);
+
+  const albums = {};
+
+  await Promise.all(filePaths.map(async fullPath => {
+    const relativePath = path.relative(musicDir, fullPath);
+    const metadata = await mm.parseFile(fullPath).catch(() => ({}));
+
+    const title = metadata.common?.title || path.parse(fullPath).name;
+    const artist = metadata.common?.artist || "Unknown Artist";
+    const album = metadata.common?.album || "Unknown Album";
+
+    const key = `${artist}||${album}`;
+
+    if (!albums[key]) {
+      let cover = null;
+
+      // 1. Try cover.jpg in folder
+      const folder = path.dirname(fullPath);
+      const candidates = ["cover.jpg", "folder.jpg", "cover.png"];
+      for (const file of candidates) {
+        const imgPath = path.join(folder, file);
+        if (fs.existsSync(imgPath)) {
+          const relImagePath = path.relative(musicDir, imgPath).split(path.sep).join("/");
+          cover = `/cover/${encodeURIComponent(relImagePath)}`;
+          break;
+        }
+      }
+
+      // 2. If no cover file, try embedded
+      if (!cover) {
+        const picture = metadata.common?.picture?.[0];
+        if (picture) {
+          const base64 = picture.data.toString("base64");
+          cover = `data:${picture.format};base64,${base64}`;
+        }
+      }
+
+      albums[key] = {
+        artist,
+        album,
+        cover,
+        tracks: []
+      };
+    }
+
+    albums[key].tracks.push({
+  title,
+  artist,
+  album,
+  duration: metadata.format?.duration || 0,
+  path: `/music/${encodeURIComponent(relativePath.split(path.sep).join("/"))}`
+});
+
+  }));
+
+  res.json(Object.values(albums));
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`🎵 Music server running at http://localhost:${PORT}`);

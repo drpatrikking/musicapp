@@ -1,57 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>My Music Streaming Server</title>
+  <meta charset="UTF-8">
+  <title>My Music App</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #111; color: #fff; }
-    .track {
-      margin-bottom: 20px;
-      background: #222;
-      padding: 10px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #121212;
+      color: white;
     }
-    .track img {
-      width: 64px;
-      height: 64px;
-      margin-right: 15px;
-      border-radius: 5px;
+    h1 {
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .album {
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .album:hover {
+      transform: scale(1.05);
+    }
+    .album img {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
       object-fit: cover;
     }
-    .track .info {
-      flex: 1;
+    .album .title {
+      font-weight: bold;
+      margin-top: 8px;
+      font-size: 0.95em;
     }
-    .track .info h3 { margin: 0 0 5px; font-size: 1.1rem; }
-    .track .info p { margin: 0; font-size: 0.9rem; color: #ccc; }
-    audio { width: 100%; margin-top: 5px; }
+    .album .artist {
+      color: #bbb;
+      font-size: 0.85em;
+    }
+    .tracklist {
+      display: none;
+      margin-top: 20px;
+    }
+    .tracklist h2 {
+      margin-bottom: 10px;
+    }
+    .tracklist audio {
+      display: block;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>🎶 My Music</h1>
-  <div id="track-list">Loading...</div>
+  <h1>🎵 My Music Albums</h1>
+  <div class="grid" id="albums"></div>
+
+  <div class="tracklist" id="tracklist">
+    <h2 id="tracklist-title"></h2>
+    <div id="tracklist-tracks"></div>
+    <button onclick="hideTracklist()">⬅ Back to albums</button>
+  </div>
 
   <script>
-    fetch("/api/tracks")
-      .then(res => res.json())
-      .then(tracks => {
-        const list = document.getElementById("track-list");
-        list.innerHTML = '';
-        tracks.forEach(track => {
-          const div = document.createElement("div");
-          div.className = "track";
-          div.innerHTML = `
-            ${track.cover ? `<img src="${track.cover}" alt="cover">` : `<img src="https://via.placeholder.com/64x64?text=♪" alt="cover">`}
-            <div class="info">
-              <h3>${track.name}</h3>
-              <p>${track.artist} – ${track.album}</p>
-              <audio controls src="${track.url}"></audio>
-            </div>
-          `;
-          list.appendChild(div);
-        });
+    async function loadAlbums() {
+      const res = await fetch('/api/albums');
+      const albums = await res.json();
+      const container = document.getElementById('albums');
+
+      albums.forEach(album => {
+        const div = document.createElement('div');
+        div.className = 'album';
+        div.onclick = () => showTracklist(album);
+        div.innerHTML = `
+          <img src="${album.cover || 'https://via.placeholder.com/160x160?text=♪'}">
+          <div class="title">${album.album}</div>
+          <div class="artist">${album.artist}</div>
+        `;
+        container.appendChild(div);
       });
+    }
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function showTracklist(album) {
+  document.querySelector('.grid').style.display = 'none';
+  document.getElementById('tracklist-title').textContent = `${album.album} – ${album.artist}`;
+  const trackContainer = document.getElementById('tracklist-tracks');
+  trackContainer.innerHTML = '';
+
+  album.tracks.forEach((track, i) => {
+    const div = document.createElement('div');
+    div.style.marginBottom = '16px';
+
+    const title = document.createElement('div');
+    title.style.fontWeight = 'bold';
+    title.textContent = `${i + 1}. ${track.title}`;
+
+    const info = document.createElement('div');
+    info.style.fontSize = '0.9em';
+    info.style.color = '#bbb';
+    info.textContent = `${track.artist} • ${track.album} • ${formatDuration(track.duration)}`;
+
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.src = track.path;
+    audio.style.marginTop = '4px';
+
+    div.appendChild(title);
+    div.appendChild(info);
+    div.appendChild(audio);
+
+    trackContainer.appendChild(div);
+  });
+
+  document.getElementById('tracklist').style.display = 'block';
+
+      document.getElementById('tracklist').style.display = 'block';
+    }
+
+    function hideTracklist() {
+      document.querySelector('.grid').style.display = 'grid';
+      document.getElementById('tracklist').style.display = 'none';
+    }
+
+    loadAlbums();
   </script>
 </body>
 </html>
