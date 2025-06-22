@@ -1,153 +1,119 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const mm = require("music-metadata");
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const mm = require('music-metadata');
+const mime = require('mime-types');
+
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
 const musicDir = "C:\\Users\\Asus\\Music\\MusicApp";
 
-app.use(express.static("public"));
-app.use("/music", express.static(musicDir));
+app.use('/music', express.static(musicDir));
+app.use(express.static('public'));
 
-// Serve cover images from subfolders
-app.use("/cover", (req, res) => {
-  const relPath = decodeURIComponent(req.path.slice(1));
-  const absPath = path.join(musicDir, relPath);
-  if (fs.existsSync(absPath)) {
-    res.sendFile(absPath);
-  } else {
-    res.status(404).send("Cover image not found");
+async function getAlbums(dir) {
+  const albumsMap = {};
+
+  // Recursively collect all MP3 file paths
+  async function traverse(currentPath) {
+    let results = [];
+    const list = await fs.promises.readdir(currentPath, { withFileTypes: true });
+    for (const file of list) {
+      const fullPath = path.join(currentPath, file.name);
+      if (file.isDirectory()) {
+        results = results.concat(await traverse(fullPath));
+      } else if (['.mp3', '.wav', '.flac'].some(ext => file.name.toLowerCase().endsWith(ext))) {
+        results.push(fullPath);
+      }
+    }
+    return results;
   }
-});
 
+  const files = await traverse((musicDir));
 
-// Recursively get all music file paths from subfolders
-function getAllMusicFiles(dir) {
-  let files = [];
-  for (const file of fs.readdirSync(dir)) {
-    const fullPath = path.join(dir, file);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      files = files.concat(getAllMusicFiles(fullPath));
-    } else if (/\.(mp3|flac|wav)$/i.test(file)) {
-      files.push(fullPath);
-    }
-  }
-  return files;
-}
+  for (const filePath of files) {
+    try {
+      const metadata = await mm.parseFile(filePath);
+      const common = metadata.common || {};
+      const title = common.title || path.basename(filePath);
+      const artist = common.artist || 'Unknown Artist';
+      const album = common.album || 'Unknown Album';
+      const duration = metadata.format?.duration || 0;
+      const track = parseInt(common.track?.no) || 0;
+      const filename = path.basename(filePath).toLowerCase();
 
-// Route to return all music tracks with metadata and paths
-app.get("/api/tracks", async (req, res) => {
-  const filePaths = getAllMusicFiles(musicDir);
+      const relativePath = path.relative(musicDir, filePath).replace(/\\/g, '/');
+      const url = `/music/${relativePath}`;
+      const albumKey = `${artist} - ${album}`;
+      const albumDir = path.dirname(path.join(musicDir, relativePath));
 
-  const tracks = await Promise.all(filePaths.map(async fullPath => {
-    const relativePath = path.relative(musicDir, fullPath);
-    const metadata = await mm.parseFile(fullPath).catch(() => ({}));
-
-    const title = metadata.common?.title || path.parse(fullPath).name;
-    const artist = metadata.common?.artist || "Unknown Artist";
-    const album = metadata.common?.album || "Unknown Album";
-
-    let coverDataUrl = null;
-
-    // Check first for .png/.jpg in the folder
-    const folder = path.dirname(fullPath);
-    const candidates = ["cover.jpg", "folder.jpg", "cover.png"];
-    for (const file of candidates) {
-      const imgPath = path.join(folder, file);
-      if (fs.existsSync(imgPath)) {
-        const relImagePath = path.relative(musicDir, imgPath).split(path.sep).join("/");
-        coverDataUrl = `/cover/${encodeURIComponent(relImagePath)}`;
-        console.log(`Using folder cover: ${coverDataUrl}`);
-        break;
-      }
-    }
-
-    // If none, check embedded artwork
-    if (!coverDataUrl) {
-      const picture = metadata.common?.picture?.[0];
-      if (picture) {
-        const base64 = picture.data.toString("base64");
-        coverDataUrl = `data:${picture.format};base64,${base64}`;
-        console.log(`Using embedded cover for: ${relativePath}`);
-      }
-    }
-
-    return {
-      name: title,
-      artist,
-      album,
-      url: `/music/${encodeURIComponent(relativePath.split(path.sep).join("/"))}`,
-      cover: coverDataUrl
-    };
-  }));
-
-  res.json(tracks);
-});
-
-app.get("/api/albums", async (req, res) => {
-  const filePaths = getAllMusicFiles(musicDir);
-
-  const albums = {};
-
-  await Promise.all(filePaths.map(async fullPath => {
-    const relativePath = path.relative(musicDir, fullPath);
-    const metadata = await mm.parseFile(fullPath).catch(() => ({}));
-
-    const title = metadata.common?.title || path.parse(fullPath).name;
-    const artist = metadata.common?.artist || "Unknown Artist";
-    const album = metadata.common?.album || "Unknown Album";
-
-    const key = `${artist}||${album}`;
-
-    if (!albums[key]) {
-      let cover = null;
-
-      // 1. Try cover.jpg in folder
-      const folder = path.dirname(fullPath);
-      const candidates = ["cover.jpg", "folder.jpg", "cover.png"];
-      for (const file of candidates) {
-        const imgPath = path.join(folder, file);
-        if (fs.existsSync(imgPath)) {
-          const relImagePath = path.relative(musicDir, imgPath).split(path.sep).join("/");
-          cover = `/cover/${encodeURIComponent(relImagePath)}`;
-          break;
+      if (!albumsMap[albumKey]) {
+        // Attempt to load cover.jpg if available
+        let cover = null;
+        const coverPath = path.join(albumDir, 'cover.jpg');
+        if (fs.existsSync(coverPath)) {
+          const buffer = await fs.promises.readFile(coverPath);
+          const mimeType = mime.lookup(coverPath) || 'image/jpeg';
+          cover = `data:${mimeType};base64,${buffer.toString('base64')}`;
+        } else if (common.picture?.length) {
+          const img = common.picture[0];
+          const base64 = img.data.toString('base64');
+          const mimeType = img.format || 'image/jpeg';
+          cover = `data:${mimeType};base64,${base64}`;
         }
+
+        albumsMap[albumKey] = {
+          album,
+          artist,
+          cover,
+          tracks: []
+        };
       }
 
-      // 2. If no cover file, try embedded
-      if (!cover) {
-        const picture = metadata.common?.picture?.[0];
-        if (picture) {
-          const base64 = picture.data.toString("base64");
-          cover = `data:${picture.format};base64,${base64}`;
-        }
-      }
-
-      albums[key] = {
+      albumsMap[albumKey].tracks.push({
+        title,
         artist,
         album,
-        cover,
-        tracks: []
-      };
+        duration,
+        url,
+        track,
+        filename
+      });
+
+    } catch (err) {
+      console.warn(`⚠️ Metadata error in ${filePath}: ${err.message}`);
     }
+  }
 
-    albums[key].tracks.push({
-  title,
-  artist,
-  album,
-  duration: metadata.format?.duration || 0,
-  path: `/music/${encodeURIComponent(relativePath.split(path.sep).join("/"))}`
+  // ✅ Sort tracks in each album
+  for (const key in albumsMap) {
+    const album = albumsMap[key];
+    album.tracks.sort((a, b) => {
+      if (a.track !== b.track) return a.track - b.track;
+      return a.filename.localeCompare(b.filename);
+    });
+  }
+
+  return Object.values(albumsMap);
+}
+
+app.get('/api/albums', async (req, res) => {
+  try {
+    const albums = await getAlbums(musicDir);
+    console.log(`📀 Found ${albums.length} album(s)`);
+    res.json(albums);
+  } catch (err) {
+    console.error('❌ Failed to load albums:', err);
+    res.status(500).json({ error: 'Could not load albums' });
+  }
 });
 
-  }));
-
-  res.json(Object.values(albums));
+app.use((req, res, next) => {
+  console.log(`Requested: ${req.url}`);
+  next();
 });
 
-
-
-app.listen(PORT, () => {
-  console.log(`🎵 Music server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`🎵 Music server running at http://localhost:${port}`);
 });
