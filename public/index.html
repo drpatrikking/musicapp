@@ -11,7 +11,7 @@
       font-family: sans-serif;
       margin: 0;
       padding: 20px;
-      padding-bottom: 80px; /* space for mini-player */
+      padding-bottom: 80px;
     }
 
     h1 {
@@ -137,8 +137,15 @@
 
     #now-playing {
       flex: 1;
-      margin-right: 20px;
+      margin-left: 12px;
       font-size: 14px;
+    }
+
+    #mini-cover {
+      height: 48px;
+      width: 48px;
+      object-fit: cover;
+      border-radius: 4px;
     }
 
     #global-player {
@@ -149,21 +156,18 @@
 <body>
   <h1>My Music Library</h1>
 
-  <!-- 🔍 Search bar -->
   <input type="text" id="search" placeholder="Search for songs, albums, or artists..." />
   <div id="search-results" class="results-container" style="display: none;"></div>
 
-  <!-- 🖼️ Album grid -->
   <div class="grid" id="album-grid"></div>
 
-  <!-- 📃 Tracklist with Back button -->
   <div id="tracklist">
     <button id="back-button">← Back to albums</button>
     <div id="tracklist-content"></div>
   </div>
 
-  <!-- 🎵 Mini Player -->
   <div id="mini-player">
+    <img id="mini-cover" src="" alt="Cover">
     <div id="now-playing">Now playing</div>
     <audio id="global-player" controls></audio>
   </div>
@@ -221,24 +225,31 @@
             <li class="track">
               ${track.track ? `${track.track}. ` : ''}${track.title}
               <br>
-              <button onclick="playInMiniPlayer('${track.url}', '${track.title}', '${album.artist}', '${album.album}')">▶ Play</button>
+              <button onclick="playInMiniPlayer('${track.url}', '${track.title}', '${album.artist}', '${album.album}', '${album.cover || ''}')">▶ Play</button>
             </li>
           `).join('')}
         </ul>
       `;
     }
 
-    function playInMiniPlayer(url, title, artist, album) {
+    function playInMiniPlayer(url, title, artist, album, cover = '') {
       const player = document.getElementById('global-player');
       const display = document.getElementById('now-playing');
       const bar = document.getElementById('mini-player');
+      const coverImg = document.getElementById('mini-cover');
 
       player.src = url;
       player.play();
       display.innerHTML = `${title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${artist} – ${album}`;
       bar.style.display = 'flex';
 
-      // Stop any other audio (if fallback players exist)
+      if (cover) {
+        coverImg.src = cover;
+        coverImg.style.display = 'block';
+      } else {
+        coverImg.style.display = 'none';
+      }
+
       const audios = document.querySelectorAll('audio');
       audios.forEach(audio => {
         if (audio !== player) {
@@ -271,7 +282,8 @@
               title: track.title,
               artist: album.artist,
               album: album.album,
-              url: track.url
+              url: track.url,
+              cover: album.cover || ''
             });
           }
         });
@@ -287,7 +299,7 @@
         <div class="result-item">
           <div class="result-title">${song.title}</div>
           <div class="result-meta">${song.artist} — ${song.album}</div>
-          <button onclick="playInMiniPlayer('${song.url}', '${song.title}', '${song.artist}', '${song.album}')">▶ Play</button>
+          <button onclick="playInMiniPlayer('${song.url}', '${song.title}', '${song.artist}', '${song.album}', '${song.cover}')">▶ Play</button>
         </div>
       `).join('');
 
