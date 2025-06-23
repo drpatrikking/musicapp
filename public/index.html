@@ -93,6 +93,7 @@
       margin-top: 40px;
       padding-top: 20px;
       border-top: 1px solid #333;
+      display: none;
     }
 
     .track {
@@ -103,20 +104,38 @@
       width: 100%;
       margin-top: 4px;
     }
+
+    #back-button {
+      margin-bottom: 20px;
+      background-color: #1db954;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-size: 14px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    #back-button:hover {
+      background-color: #1ed760;
+    }
   </style>
 </head>
 <body>
   <h1>My Music Library</h1>
 
-  <!-- 🔍 Search bar -->
+  <!-- Search bar -->
   <input type="text" id="search" placeholder="Search for songs, albums, or artists..." />
   <div id="search-results" class="results-container" style="display: none;"></div>
 
-  <!-- 🖼️ Album grid -->
+  <!-- Album grid -->
   <div class="grid" id="album-grid"></div>
 
-  <!-- 📃 Tracklist -->
-  <div id="tracklist"></div>
+  <!-- Tracklist with back button -->
+  <div id="tracklist">
+    <button id="back-button">← Back to albums</button>
+    <div id="tracklist-content"></div>
+  </div>
 
   <script>
     let albums = [];
@@ -159,8 +178,12 @@
     }
 
     function showTracklist(album) {
-      const container = document.getElementById('tracklist');
-      container.innerHTML = `
+      document.getElementById('album-grid').style.display = 'none';
+      document.getElementById('search-results').style.display = 'none';
+      document.getElementById('tracklist').style.display = 'block';
+
+      const content = document.getElementById('tracklist-content');
+      content.innerHTML = `
         <h2>${album.album} – ${album.artist}</h2>
         <ul style="list-style: none; padding-left: 0;">
           ${album.tracks.map(track => `
@@ -171,7 +194,6 @@
           `).join('')}
         </ul>
       `;
-      container.scrollIntoView({ behavior: 'smooth' });
     }
 
     document.getElementById('search').addEventListener('input', e => {
@@ -220,16 +242,27 @@
 
       resultsContainer.style.display = 'block';
     });
-    document.addEventListener('play', function(e) {
-  if (e.target.tagName === 'AUDIO') {
-    const audios = document.querySelectorAll('audio');
-    audios.forEach(audio => {
-      if (audio !== e.target) {
-        audio.pause();
-      }
+
+    // Back button
+    document.getElementById('back-button').addEventListener('click', () => {
+      document.getElementById('tracklist').style.display = 'none';
+      document.getElementById('album-grid').style.display = 'grid';
+      document.getElementById('search-results').innerHTML = '';
+      document.getElementById('search-results').style.display = 'none';
+      document.getElementById('search').value = '';
     });
-  }
-}, true);
+
+    // Only one track is played at a time
+    document.addEventListener('play', function(e) {
+      if (e.target.tagName === 'AUDIO') {
+        const audios = document.querySelectorAll('audio');
+        audios.forEach(audio => {
+          if (audio !== e.target) {
+            audio.pause();
+          }
+        });
+      }
+    }, true);
 
     loadAlbums();
   </script>
