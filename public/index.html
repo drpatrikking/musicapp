@@ -174,6 +174,8 @@
 
   <script>
     let albums = [];
+    let currentAlbumTracks = [];
+    let currentTrackIndex = -1;
 
     function loadAlbums() {
       fetch('/api/albums')
@@ -221,18 +223,26 @@
       content.innerHTML = `
         <h2>${album.album} – ${album.artist}</h2>
         <ul style="list-style: none; padding-left: 0;">
-          ${album.tracks.map(track => `
+          ${album.tracks.map((track, i) => `
             <li class="track">
               ${track.track ? `${track.track}. ` : ''}${track.title}
               <br>
-              <button onclick="playInMiniPlayer('${track.url}', '${track.title}', '${album.artist}', '${album.album}', '${album.cover || ''}')">▶ Play</button>
+              <button 
+                class="play-button"
+                data-url="${track.url}"
+                data-title="${track.title}"
+                data-artist="${album.artist}"
+                data-album="${album.album}"
+                data-cover="${album.cover || ''}"
+                data-index="${i}"
+              >▶ Play</button>
             </li>
           `).join('')}
         </ul>
       `;
     }
 
-    function playInMiniPlayer(url, title, artist, album, cover = '') {
+    function playInMiniPlayer(url, title, artist, album, cover = '', trackIndex = -1, trackList = []) {
       const player = document.getElementById('global-player');
       const display = document.getElementById('now-playing');
       const bar = document.getElementById('mini-player');
@@ -250,6 +260,9 @@
         coverImg.style.display = 'none';
       }
 
+      currentAlbumTracks = trackList;
+      currentTrackIndex = trackIndex;
+
       const audios = document.querySelectorAll('audio');
       audios.forEach(audio => {
         if (audio !== player) {
@@ -257,6 +270,32 @@
         }
       });
     }
+
+    document.addEventListener('click', e => {
+      if (e.target.classList.contains('play-button')) {
+        const btn = e.target;
+        const url = btn.dataset.url;
+        const title = btn.dataset.title;
+        const artist = btn.dataset.artist;
+        const album = btn.dataset.album;
+        const cover = btn.dataset.cover;
+        const index = parseInt(btn.dataset.index, 10);
+
+        const albumTracks = albums.find(a => a.album === album && a.artist === artist)?.tracks || [];
+        playInMiniPlayer(url, title, artist, album, cover, index, albumTracks);
+      }
+    });
+
+    document.getElementById('global-player').addEventListener('ended', () => {
+      if (currentAlbumTracks.length && currentTrackIndex >= 0 && currentTrackIndex < currentAlbumTracks.length - 1) {
+        currentTrackIndex++;
+        const next = currentAlbumTracks[currentTrackIndex];
+        playInMiniPlayer(next.url, next.title, '', '', '', currentTrackIndex, currentAlbumTracks);
+      } else {
+        currentAlbumTracks = [];
+        currentTrackIndex = -1;
+      }
+    });
 
     document.getElementById('search').addEventListener('input', e => {
       const query = e.target.value.toLowerCase();
@@ -299,7 +338,15 @@
         <div class="result-item">
           <div class="result-title">${song.title}</div>
           <div class="result-meta">${song.artist} — ${song.album}</div>
-          <button onclick="playInMiniPlayer('${song.url}', '${song.title}', '${song.artist}', '${song.album}', '${song.cover}')">▶ Play</button>
+          <button 
+            class="play-button"
+            data-url="${song.url}"
+            data-title="${song.title}"
+            data-artist="${song.artist}"
+            data-album="${song.album}"
+            data-cover="${song.cover}"
+            data-index="0"
+          >▶ Play</button>
         </div>
       `).join('');
 

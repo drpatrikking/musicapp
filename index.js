@@ -15,7 +15,7 @@ app.use(express.static('public'));
 async function getAlbums(dir) {
   const albumsMap = {};
 
-  // Recursively collect all MP3 file paths
+  // Recursively collect all music file paths
   async function traverse(currentPath) {
     let results = [];
     const list = await fs.promises.readdir(currentPath, { withFileTypes: true });
