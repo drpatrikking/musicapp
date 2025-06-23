@@ -231,9 +231,9 @@
                 class="play-button"
                 data-url="${track.url}"
                 data-title="${track.title}"
-                data-artist="${album.artist}"
-                data-album="${album.album}"
-                data-cover="${album.cover || ''}"
+                data-artist="${track.artist}"
+                data-album="${track.album}"
+                data-cover="${track.cover}"
                 data-index="${i}"
               >▶ Play</button>
             </li>
@@ -287,10 +287,22 @@
     });
 
     document.getElementById('global-player').addEventListener('ended', () => {
-      if (currentAlbumTracks.length && currentTrackIndex >= 0 && currentTrackIndex < currentAlbumTracks.length - 1) {
+      if (
+        currentAlbumTracks.length &&
+        currentTrackIndex >= 0 &&
+        currentTrackIndex < currentAlbumTracks.length - 1
+      ) {
         currentTrackIndex++;
         const next = currentAlbumTracks[currentTrackIndex];
-        playInMiniPlayer(next.url, next.title, '', '', '', currentTrackIndex, currentAlbumTracks);
+        playInMiniPlayer(
+          next.url,
+          next.title,
+          next.artist || '',
+          next.album || '',
+          next.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
       } else {
         currentAlbumTracks = [];
         currentTrackIndex = -1;
@@ -319,22 +331,16 @@
           if (match) {
             foundSongs.push({
               title: track.title,
-              artist: album.artist,
-              album: album.album,
+              artist: track.artist,
+              album: track.album,
               url: track.url,
-              cover: album.cover || ''
+              cover: track.cover
             });
           }
         });
       });
 
-      if (foundSongs.length === 0) {
-        resultsContainer.style.display = 'none';
-        resultsContainer.innerHTML = '';
-        return;
-      }
-
-      resultsContainer.innerHTML = foundSongs.map(song => `
+      resultsContainer.innerHTML = foundSongs.map((song, i) => `
         <div class="result-item">
           <div class="result-title">${song.title}</div>
           <div class="result-meta">${song.artist} — ${song.album}</div>
@@ -345,7 +351,7 @@
             data-artist="${song.artist}"
             data-album="${song.album}"
             data-cover="${song.cover}"
-            data-index="0"
+            data-index="${i}"
           >▶ Play</button>
         </div>
       `).join('');
