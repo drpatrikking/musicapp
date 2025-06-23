@@ -1,158 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Music App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Music Library</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 20px;
-      background: #121212;
+      background-color: #111;
       color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
     }
+
     h1 {
       text-align: center;
+      margin-bottom: 20px;
     }
+
+    #search {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      background-color: #1c1c1c;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      outline: none;
+    }
+
+    .results-container {
+      background-color: #222;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 30px;
+    }
+
+    .result-item {
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .result-meta {
+      font-size: 14px;
+      color: #aaa;
+    }
+
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
     }
-    .album {
-      background: #1e1e1e;
+
+    .album-card {
+      background: #222;
       padding: 10px;
-      border-radius: 8px;
+      border-radius: 10px;
+      text-align: center;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: background 0.2s;
     }
-    .album:hover {
-      transform: scale(1.05);
+
+    .album-card:hover {
+      background: #333;
     }
-    .album img {
+
+    .album-card img {
       width: 100%;
-      aspect-ratio: 1;
-      border-radius: 4px;
+      height: 180px;
       object-fit: cover;
+      border-radius: 6px;
     }
-    .album .title {
-      font-weight: bold;
+
+    .album-name, .album-artist {
       margin-top: 8px;
-      font-size: 0.95em;
+      font-size: 14px;
     }
-    .album .artist {
-      color: #bbb;
-      font-size: 0.85em;
+
+    #tracklist {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
     }
-    .tracklist {
-      display: none;
-      margin-top: 20px;
+
+    .track {
+      margin: 6px 0;
     }
-    .tracklist h2 {
-      margin-bottom: 10px;
-    }
-    .tracklist audio {
-      display: block;
-      margin-bottom: 10px;
+
+    audio {
+      width: 100%;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>🎵 My Music Albums</h1>
-  <div class="grid" id="albums"></div>
+  <h1>My Music Library</h1>
 
-  <div class="tracklist" id="tracklist">
-    <h2 id="tracklist-title"></h2>
-    <div id="tracklist-tracks"></div>
-    <button onclick="hideTracklist()">⬅ Back to albums</button>
-  </div>
+  <!-- 🔍 Search bar -->
+  <input type="text" id="search" placeholder="Search for songs, albums, or artists..." />
+  <div id="search-results" class="results-container" style="display: none;"></div>
+
+  <!-- 🖼️ Album grid -->
+  <div class="grid" id="album-grid"></div>
+
+  <!-- 📃 Tracklist -->
+  <div id="tracklist"></div>
 
   <script>
-    async function loadAlbums() {
-      const res = await fetch('/api/albums');
-      const albums = await res.json();
-      const container = document.getElementById('albums');
+    let albums = [];
+
+    function loadAlbums() {
+      fetch('/api/albums')
+        .then(res => res.json())
+        .then(data => {
+          albums = data;
+          displayAlbums(albums);
+        });
+    }
+
+    function displayAlbums(list) {
+      const grid = document.getElementById('album-grid');
+      grid.innerHTML = '';
+
+      list.forEach(album => {
+        const card = document.createElement('div');
+        card.className = 'album-card';
+
+        const img = document.createElement('img');
+        img.src = album.cover || 'https://via.placeholder.com/300?text=♪';
+        img.alt = album.album;
+        img.onclick = () => showTracklist(album);
+
+        const name = document.createElement('div');
+        name.className = 'album-name';
+        name.textContent = album.album;
+
+        const artist = document.createElement('div');
+        artist.className = 'album-artist';
+        artist.textContent = album.artist;
+
+        card.appendChild(img);
+        card.appendChild(name);
+        card.appendChild(artist);
+        grid.appendChild(card);
+      });
+    }
+
+    function showTracklist(album) {
+      const container = document.getElementById('tracklist');
+      container.innerHTML = `
+        <h2>${album.album} – ${album.artist}</h2>
+        <ul style="list-style: none; padding-left: 0;">
+          ${album.tracks.map(track => `
+            <li class="track">
+              ${track.track ? `${track.track}. ` : ''}${track.title}
+              <audio controls src="${track.url}" preload="none"></audio>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      container.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.getElementById('search').addEventListener('input', e => {
+      const query = e.target.value.toLowerCase();
+      const resultsContainer = document.getElementById('search-results');
+
+      if (!query) {
+        resultsContainer.style.display = 'none';
+        resultsContainer.innerHTML = '';
+        return;
+      }
+
+      let foundSongs = [];
 
       albums.forEach(album => {
-        const div = document.createElement('div');
-        div.className = 'album';
-        div.onclick = () => showTracklist(album);
-        div.innerHTML = `
-          <img src="${album.cover || 'https://via.placeholder.com/160x160?text=♪'}">
-          <div class="title">${album.album}</div>
-          <div class="artist">${album.artist}</div>
-        `;
-        container.appendChild(div);
+        album.tracks.forEach(track => {
+          const match =
+            track.title.toLowerCase().includes(query) ||
+            album.album.toLowerCase().includes(query) ||
+            album.artist.toLowerCase().includes(query);
+
+          if (match) {
+            foundSongs.push({
+              title: track.title,
+              artist: album.artist,
+              album: album.album,
+              url: track.url
+            });
+          }
+        });
       });
-    }
 
-function formatDuration(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-  return `${m}:${s}`;
-}
+      if (foundSongs.length === 0) {
+        resultsContainer.style.display = 'none';
+        resultsContainer.innerHTML = '';
+        return;
+      }
 
-let allAudioElements = [];
+      resultsContainer.innerHTML = foundSongs.map(song => `
+        <div class="result-item">
+          <div class="result-title">${song.title}</div>
+          <div class="result-meta">${song.artist} — ${song.album}</div>
+          <audio controls src="${song.url}" preload="none"></audio>
+        </div>
+      `).join('');
 
-function enableSinglePlayback() {
-  allAudioElements.forEach(audio => {
-    audio.addEventListener('play', () => {
-      allAudioElements.forEach(other => {
-        if (other !== audio && !other.paused) {
-          other.pause();
-        }
-      });
+      resultsContainer.style.display = 'block';
     });
-  });
-}
-
-
-function showTracklist(album) {
-  document.querySelector('.grid').style.display = 'none';
-  document.getElementById('tracklist-title').textContent = `${album.album} – ${album.artist}`;
-  const trackContainer = document.getElementById('tracklist-tracks');
-  trackContainer.innerHTML = '';
-
-  album.tracks.forEach((track, i) => {
-    const div = document.createElement('div');
-    div.style.marginBottom = '16px';
-
-    const title = document.createElement('div');
-    title.style.fontWeight = 'bold';
-    title.textContent = `${i + 1}. ${track.title}`;
-
-    const info = document.createElement('div');
-    info.style.fontSize = '0.9em';
-    info.style.color = '#bbb';
-    info.textContent = `${track.artist} • ${track.album} • ${formatDuration(track.duration)}`;
-
-    const audio = document.createElement('audio');
-    audio.controls = true;
-    audio.src = track.url;
-    audio.style.marginTop = '4px';
-
-    div.appendChild(title);
-    div.appendChild(info);
-    div.appendChild(audio);
-
-      // Add all track blocks to container...
-  trackContainer.appendChild(div);
-});
-
-// Single-track playback
-allAudioElements = Array.from(document.querySelectorAll('audio'));
-enableSinglePlayback();
-
-document.getElementById('tracklist').style.display = 'block';
-
-
-      document.getElementById('tracklist').style.display = 'block';
-    }
-
-    function hideTracklist() {
-      document.querySelector('.grid').style.display = 'grid';
-      document.getElementById('tracklist').style.display = 'none';
-    }
+    document.addEventListener('play', function(e) {
+  if (e.target.tagName === 'AUDIO') {
+    const audios = document.querySelectorAll('audio');
+    audios.forEach(audio => {
+      if (audio !== e.target) {
+        audio.pause();
+      }
+    });
+  }
+}, true);
 
     loadAlbums();
   </script>
