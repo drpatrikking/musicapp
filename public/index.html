@@ -11,6 +11,7 @@
       font-family: sans-serif;
       margin: 0;
       padding: 20px;
+      padding-bottom: 80px; /* space for mini-player */
     }
 
     h1 {
@@ -100,41 +101,71 @@
       margin: 6px 0;
     }
 
-    audio {
-      width: 100%;
-      margin-top: 4px;
-    }
-
-    #back-button {
-      margin-bottom: 20px;
-      background-color: #1db954;
+    button {
+      background: #1db954;
       border: none;
-      padding: 10px 20px;
+      padding: 6px 12px;
       color: white;
       font-size: 14px;
       border-radius: 20px;
       cursor: pointer;
+      margin-top: 6px;
     }
 
-    #back-button:hover {
-      background-color: #1ed760;
+    button:hover {
+      background: #1ed760;
+    }
+
+    #back-button {
+      margin-bottom: 20px;
+    }
+
+    #mini-player {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1c1c1c;
+      color: white;
+      padding: 10px 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+    }
+
+    #now-playing {
+      flex: 1;
+      margin-right: 20px;
+      font-size: 14px;
+    }
+
+    #global-player {
+      width: 300px;
     }
   </style>
 </head>
 <body>
   <h1>My Music Library</h1>
 
-  <!-- Search bar -->
+  <!-- 🔍 Search bar -->
   <input type="text" id="search" placeholder="Search for songs, albums, or artists..." />
   <div id="search-results" class="results-container" style="display: none;"></div>
 
-  <!-- Album grid -->
+  <!-- 🖼️ Album grid -->
   <div class="grid" id="album-grid"></div>
 
-  <!-- Tracklist with back button -->
+  <!-- 📃 Tracklist with Back button -->
   <div id="tracklist">
     <button id="back-button">← Back to albums</button>
     <div id="tracklist-content"></div>
+  </div>
+
+  <!-- 🎵 Mini Player -->
+  <div id="mini-player">
+    <div id="now-playing">Now playing</div>
+    <audio id="global-player" controls></audio>
   </div>
 
   <script>
@@ -189,11 +220,31 @@
           ${album.tracks.map(track => `
             <li class="track">
               ${track.track ? `${track.track}. ` : ''}${track.title}
-              <audio controls src="${track.url}" preload="none"></audio>
+              <br>
+              <button onclick="playInMiniPlayer('${track.url}', '${track.title}', '${album.artist}', '${album.album}')">▶ Play</button>
             </li>
           `).join('')}
         </ul>
       `;
+    }
+
+    function playInMiniPlayer(url, title, artist, album) {
+      const player = document.getElementById('global-player');
+      const display = document.getElementById('now-playing');
+      const bar = document.getElementById('mini-player');
+
+      player.src = url;
+      player.play();
+      display.innerHTML = `${title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${artist} – ${album}`;
+      bar.style.display = 'flex';
+
+      // Stop any other audio (if fallback players exist)
+      const audios = document.querySelectorAll('audio');
+      audios.forEach(audio => {
+        if (audio !== player) {
+          audio.pause();
+        }
+      });
     }
 
     document.getElementById('search').addEventListener('input', e => {
@@ -236,14 +287,13 @@
         <div class="result-item">
           <div class="result-title">${song.title}</div>
           <div class="result-meta">${song.artist} — ${song.album}</div>
-          <audio controls src="${song.url}" preload="none"></audio>
+          <button onclick="playInMiniPlayer('${song.url}', '${song.title}', '${song.artist}', '${song.album}')">▶ Play</button>
         </div>
       `).join('');
 
       resultsContainer.style.display = 'block';
     });
 
-    // Back button
     document.getElementById('back-button').addEventListener('click', () => {
       document.getElementById('tracklist').style.display = 'none';
       document.getElementById('album-grid').style.display = 'grid';
@@ -251,18 +301,6 @@
       document.getElementById('search-results').style.display = 'none';
       document.getElementById('search').value = '';
     });
-
-    // Only one track is played at a time
-    document.addEventListener('play', function(e) {
-      if (e.target.tagName === 'AUDIO') {
-        const audios = document.querySelectorAll('audio');
-        audios.forEach(audio => {
-          if (audio !== e.target) {
-            audio.pause();
-          }
-        });
-      }
-    }, true);
 
     loadAlbums();
   </script>
