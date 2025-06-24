@@ -160,6 +160,8 @@
   <div id="search-results" class="results-container" style="display: none;"></div>
 
   <div class="grid" id="album-grid"></div>
+  <h2 style="margin-top: 40px;">Browse by Artist</h2>
+  <div class="grid" id="artist-grid"></div>
 
   <div id="tracklist">
     <button id="back-button">← Back to albums</button>
@@ -183,6 +185,7 @@
         .then(data => {
           albums = data;
           displayAlbums(albums);
+          displayArtists(albums);
         });
     }
 
@@ -214,6 +217,33 @@
       });
     }
 
+    function displayArtists(albums) {
+      const artistGrid = document.getElementById('artist-grid');
+      artistGrid.innerHTML = '';
+
+      const seen = new Set();
+
+      albums.forEach(album => {
+        const artist = album.artist;
+        if (!seen.has(artist)) {
+          seen.add(artist);
+
+          const card = document.createElement('div');
+          card.className = 'album-card'; // reuse styling
+          card.onclick = () => showArtistAlbums(artist);
+
+          const name = document.createElement('div');
+          name.className = 'album-name';
+          name.style.marginTop = '60px';
+          name.style.fontSize = '16px';
+          name.textContent = artist;
+
+          card.appendChild(name);
+          artistGrid.appendChild(card);
+        }
+      });
+    }
+
     function showTracklist(album) {
       document.getElementById('album-grid').style.display = 'none';
       document.getElementById('search-results').style.display = 'none';
@@ -240,6 +270,14 @@
           `).join('')}
         </ul>
       `;
+    }
+
+    function showArtistAlbums(artist) {
+      const filtered = albums.filter(a => a.artist === artist);
+      displayAlbums(filtered);
+
+      // Optionally scroll to top or grid
+      document.getElementById('album-grid').scrollIntoView({ behavior: 'smooth' });
     }
 
     function playInMiniPlayer(url, title, artist, album, cover = '', trackIndex = -1, trackList = []) {
