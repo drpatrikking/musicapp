@@ -158,10 +158,19 @@
 
   <input type="text" id="search" placeholder="Search for songs, albums, or artists..." />
   <div id="search-results" class="results-container" style="display: none;"></div>
-  
-  <button id="back-to-artists" style="display: none; margin-bottom: 20px; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
-    ← Back to all artists
-  </button>
+
+  <div style="margin-bottom: 20px;">
+    <button id="back-to-artist" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+      &larr; Back to artist's albums
+    </button>
+    <button id="back-to-home" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+      &larr; Back to all albums
+    </button>
+    <button id="back-to-homepage" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+      &larr; Back to homepage
+    </button>
+  </div>
+
   <div class="grid" id="album-grid"></div>
   <div id="artist-section">
     <h2>Browse by Artist</h2>
@@ -183,6 +192,7 @@
     let albums = [];
     let currentAlbumTracks = [];
     let currentTrackIndex = -1;
+    let lastViewedArtist = null;
 
     function loadAlbums() {
       fetch('/api/albums')
@@ -194,7 +204,7 @@
         });
     }
 
-    function displayAlbums(list) {
+    function displayAlbums(list, fromArtist = null) {
       const grid = document.getElementById('album-grid');
       grid.innerHTML = '';
 
@@ -202,10 +212,17 @@
         const card = document.createElement('div');
         card.className = 'album-card';
 
+        // Preserve origin info
+        const albumWithSource = { ...album };
+        if (fromArtist) {
+          albumWithSource._fromArtist = fromArtist;
+        }
+
+        card.onclick = () => showTracklist(albumWithSource);
+
         const img = document.createElement('img');
         img.src = album.cover || 'https://via.placeholder.com/300?text=♪';
         img.alt = album.album;
-        card.onclick = () => showTracklist(album);
 
         const name = document.createElement('div');
         name.className = 'album-name';
@@ -220,6 +237,8 @@
         card.appendChild(artist);
         grid.appendChild(card);
       });
+
+      grid.style.display = 'grid';
     }
 
     function displayArtists(albums) {
@@ -250,10 +269,24 @@
     }
 
     function showTracklist(album) {
+      lastViewedArtist = album._fromArtist || null;
+
       document.getElementById('album-grid').style.display = 'none';
       document.getElementById('search-results').style.display = 'none';
-      document.getElementById('tracklist').style.display = 'block';
       document.getElementById('artist-section').style.display = 'none';
+      document.getElementById('tracklist').style.display = 'block';
+      document.getElementById('back-to-homepage').style.display = 'none';
+
+      // Toggle back buttons
+      if (lastViewedArtist) {
+        document.getElementById('back-to-artist').style.display = 'inline-block';
+        document.getElementById('back-to-home').style.display = 'none';
+        document.getElementById('back-button').style.display = 'none';
+      } else {
+        document.getElementById('back-to-home').style.display = 'inline-block';
+        document.getElementById('back-to-artist').style.display = 'none';
+        document.getElementById('back-button').style.display = 'none';
+      }
 
       const content = document.getElementById('tracklist-content');
       content.innerHTML = `
@@ -280,18 +313,34 @@
 
     function showArtistAlbums(artist) {
       const filtered = albums.filter(a => a.artist === artist);
-      displayAlbums(filtered);
+        displayAlbums(filtered, artist);
 
-      document.getElementById('back-to-artists').style.display = 'inline-block';
-      document.getElementById('album-grid').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('back-to-artist').style.display = 'inline-block';
       document.getElementById('artist-section').style.display = 'none';
+
+      document.getElementById('back-to-artist').style.display = 'none';
+      document.getElementById('back-to-homepage').style.display = 'inline-block';
     }
 
-    document.getElementById('back-to-artists').addEventListener('click', () => {
+    document.getElementById('back-to-artist').addEventListener('click', () => {
+      if (lastViewedArtist) {
+        showArtistAlbums(lastViewedArtist);
+        document.getElementById('tracklist').style.display = 'none';
+        document.getElementById('back-to-artist').style.display = 'none';
+      }
+    });
+
+    document.getElementById('back-to-homepage').addEventListener('click', () => {
       displayAlbums(albums);
       displayArtists(albums);
-      document.getElementById('back-to-artists').style.display = 'none';
+
+      document.getElementById('album-grid').style.display = 'grid';
       document.getElementById('artist-section').style.display = 'block';
+      document.getElementById('tracklist').style.display = 'none';
+
+      document.getElementById('back-to-artist').style.display = 'none';
+      document.getElementById('back-to-home').style.display = 'none';
+      document.getElementById('back-to-homepage').style.display = 'none';
     });
 
     function playInMiniPlayer(url, title, artist, album, cover = '', trackIndex = -1, trackList = []) {
@@ -417,6 +466,32 @@
       document.getElementById('search-results').innerHTML = '';
       document.getElementById('search-results').style.display = 'none';
       document.getElementById('search').value = '';
+      document.getElementById('back-to-homepage').style.display = 'none';
+    });
+
+    // Back to all albums (from full grid)
+    document.getElementById('back-to-home').addEventListener('click', () => {
+      displayAlbums(albums);
+      displayArtists(albums);
+
+      document.getElementById('album-grid').style.display = 'grid';
+      document.getElementById('artist-section').style.display = 'block';
+      document.getElementById('tracklist').style.display = 'none';
+
+      document.getElementById('back-to-home').style.display = 'none';
+      document.getElementById('back-to-artist').style.display = 'none';
+      document.getElementById('back-to-homepage').style.display = 'none';
+
+      lastViewedArtist = null;
+    });
+
+    // Back to artist’s albums (from artist filter)
+    document.getElementById('back-to-artist').addEventListener('click', () => {
+      if (lastViewedArtist) {
+        showArtistAlbums(lastViewedArtist);
+        document.getElementById('tracklist').style.display = 'none';
+        document.getElementById('back-to-artist').style.display = 'none';
+      }
     });
 
     loadAlbums();
