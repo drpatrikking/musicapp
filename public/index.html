@@ -160,7 +160,7 @@
       &larr; Back to artist's albums
     </button>
     <button id="back-to-home" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
-      &larr; Back to all albums
+      &larr; Back to homepage
     </button>
     <button id="back-to-homepage" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
       &larr; Back to homepage
@@ -240,26 +240,22 @@
       const artistGrid = document.getElementById('artist-grid');
       artistGrid.innerHTML = '';
 
-      const seen = new Set();
+      const artistSet = new Set(albums.map(album => album.artist));
+      const sortedArtists = Array.from(artistSet).sort((a, b) => a.localeCompare(b));
 
-      albums.forEach(album => {
-        const artist = album.artist;
-        if (!seen.has(artist)) {
-          seen.add(artist);
+      sortedArtists.forEach(artist => {
+        const card = document.createElement('div');
+        card.className = 'album-card';
+        card.onclick = () => showArtistAlbums(artist);
 
-          const card = document.createElement('div');
-          card.className = 'album-card'; // reuse styling
-          card.onclick = () => showArtistAlbums(artist);
+        const name = document.createElement('div');
+        name.className = 'album-name';
+        name.style.marginTop = '60px';
+        name.style.fontSize = '16px';
+        name.textContent = artist;
 
-          const name = document.createElement('div');
-          name.className = 'album-name';
-          name.style.marginTop = '60px';
-          name.style.fontSize = '16px';
-          name.textContent = artist;
-
-          card.appendChild(name);
-          artistGrid.appendChild(card);
-        }
+        card.appendChild(name);
+        artistGrid.appendChild(card);
       });
     }
 
@@ -283,7 +279,10 @@
 
       const content = document.getElementById('tracklist-content');
       content.innerHTML = `
-        <h2>${album.album} – ${album.artist}</h2>
+        <h2 style="text-align: center;">${album.album} – ${album.artist}</h2>
+        <div style="text-align: center; margin: 16px 0;">
+          <img src="${album.cover || 'https://via.placeholder.com/300?text=♪'}" alt="${album.album}" style="max-width: 300px; width: 80%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" />
+        </div>
         <ul style="list-style: none; padding-left: 0;">
           ${album.tracks.map((track, i) => `
             <li class="track">
