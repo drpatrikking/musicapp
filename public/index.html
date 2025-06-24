@@ -147,6 +147,41 @@
     #global-player {
       width: 300px;
     }
+
+    #prev-button, #next-button {
+      background: #333;
+      border: none;
+      padding: 6px 10px;
+      color: white;
+      font-size: 16px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    #prev-button:hover, #next-button:hover {
+      background: #444;
+    }
+
+    .icon-button {
+      background: #333;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .icon-button:hover {
+      background: #444;
+    }
+
+    .icon-button svg {
+      display: block;
+      fill: white;
+    }
   </style>
 </head>
 <body>
@@ -180,7 +215,21 @@
   <div id="mini-player">
     <img id="mini-cover" src="" alt="Cover">
     <div id="now-playing">Now playing</div>
-    <audio id="global-player" controls></audio>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button id="prev-button" class="icon-button" title="Previous track">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 18V6L3 12L11 18Z" />
+          <path d="M21 6H19V18H21V6Z" />
+        </svg>
+      </button>
+      <audio id="global-player" controls></audio>
+      <button id="next-button" class="icon-button" title="Next track">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 6V18L21 12L13 6Z" />
+          <path d="M5 6H7V18H5V6Z" />
+        </svg>
+      </button>
+    </div>
   </div>
 
   <script>
@@ -474,6 +523,45 @@
         showArtistAlbums(lastViewedArtist);
         document.getElementById('tracklist').style.display = 'none';
         document.getElementById('back-to-artist').style.display = 'none';
+      }
+    });
+
+    document.getElementById('next-button').addEventListener('click', () => {
+      if (
+        currentAlbumTracks.length &&
+        currentTrackIndex >= 0 &&
+        currentTrackIndex < currentAlbumTracks.length - 1
+      ) {
+        currentTrackIndex++;
+        const next = currentAlbumTracks[currentTrackIndex];
+        playInMiniPlayer(
+          next.url,
+          next.title,
+          next.artist || '',
+          next.album || '',
+          next.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
+      }
+    });
+
+    document.getElementById('prev-button').addEventListener('click', () => {
+      if (
+        currentAlbumTracks.length &&
+        currentTrackIndex > 0
+      ) {
+        currentTrackIndex--;
+        const prev = currentAlbumTracks[currentTrackIndex];
+        playInMiniPlayer(
+          prev.url,
+          prev.title,
+          prev.artist || '',
+          prev.album || '',
+          prev.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
       }
     });
 
