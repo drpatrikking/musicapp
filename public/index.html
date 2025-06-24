@@ -197,7 +197,7 @@
         const img = document.createElement('img');
         img.src = album.cover || 'https://via.placeholder.com/300?text=♪';
         img.alt = album.album;
-        img.onclick = () => showTracklist(album);
+        card.onclick = () => showTracklist(album);
 
         const name = document.createElement('div');
         name.className = 'album-name';
