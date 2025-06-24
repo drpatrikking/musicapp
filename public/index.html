@@ -158,10 +158,15 @@
 
   <input type="text" id="search" placeholder="Search for songs, albums, or artists..." />
   <div id="search-results" class="results-container" style="display: none;"></div>
-
+  
+  <button id="back-to-artists" style="display: none; margin-bottom: 20px; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+    ← Back to all artists
+  </button>
   <div class="grid" id="album-grid"></div>
-  <h2 style="margin-top: 40px;">Browse by Artist</h2>
-  <div class="grid" id="artist-grid"></div>
+  <div id="artist-section">
+    <h2>Browse by Artist</h2>
+    <div class="grid" id="artist-grid"></div>
+  </div>
 
   <div id="tracklist">
     <button id="back-button">← Back to albums</button>
@@ -248,6 +253,7 @@
       document.getElementById('album-grid').style.display = 'none';
       document.getElementById('search-results').style.display = 'none';
       document.getElementById('tracklist').style.display = 'block';
+      document.getElementById('artist-section').style.display = 'none';
 
       const content = document.getElementById('tracklist-content');
       content.innerHTML = `
@@ -276,9 +282,17 @@
       const filtered = albums.filter(a => a.artist === artist);
       displayAlbums(filtered);
 
-      // Optionally scroll to top or grid
+      document.getElementById('back-to-artists').style.display = 'inline-block';
       document.getElementById('album-grid').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('artist-section').style.display = 'none';
     }
+
+    document.getElementById('back-to-artists').addEventListener('click', () => {
+      displayAlbums(albums);
+      displayArtists(albums);
+      document.getElementById('back-to-artists').style.display = 'none';
+      document.getElementById('artist-section').style.display = 'block';
+    });
 
     function playInMiniPlayer(url, title, artist, album, cover = '', trackIndex = -1, trackList = []) {
       const player = document.getElementById('global-player');
