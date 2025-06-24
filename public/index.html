@@ -116,10 +116,6 @@
       background: #1ed760;
     }
 
-    #back-button {
-      margin-bottom: 20px;
-    }
-
     #mini-player {
       position: fixed;
       bottom: 0;
@@ -178,7 +174,6 @@
   </div>
 
   <div id="tracklist">
-    <button id="back-button">← Back to albums</button>
     <div id="tracklist-content"></div>
   </div>
 
@@ -281,11 +276,9 @@
       if (lastViewedArtist) {
         document.getElementById('back-to-artist').style.display = 'inline-block';
         document.getElementById('back-to-home').style.display = 'none';
-        document.getElementById('back-button').style.display = 'none';
       } else {
         document.getElementById('back-to-home').style.display = 'inline-block';
         document.getElementById('back-to-artist').style.display = 'none';
-        document.getElementById('back-button').style.display = 'none';
       }
 
       const content = document.getElementById('tracklist-content');
@@ -458,15 +451,6 @@
       `).join('');
 
       resultsContainer.style.display = 'block';
-    });
-
-    document.getElementById('back-button').addEventListener('click', () => {
-      document.getElementById('tracklist').style.display = 'none';
-      document.getElementById('album-grid').style.display = 'grid';
-      document.getElementById('search-results').innerHTML = '';
-      document.getElementById('search-results').style.display = 'none';
-      document.getElementById('search').value = '';
-      document.getElementById('back-to-homepage').style.display = 'none';
     });
 
     // Back to all albums (from full grid)
