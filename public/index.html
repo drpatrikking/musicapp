@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Music Library</title>
   <style>
     body {
@@ -28,7 +29,7 @@
       border: none;
       border-radius: 30px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
       outline: none;
     }
 
@@ -85,7 +86,8 @@
       border-radius: 6px;
     }
 
-    .album-name, .album-artist {
+    .album-name,
+    .album-artist {
       margin-top: 8px;
       font-size: 14px;
     }
@@ -128,7 +130,7 @@
       align-items: center;
       justify-content: space-between;
       z-index: 1000;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
     }
 
     #now-playing {
@@ -148,7 +150,8 @@
       width: 300px;
     }
 
-    #prev-button, #next-button {
+    #prev-button,
+    #next-button {
       background: #333;
       border: none;
       padding: 6px 10px;
@@ -158,7 +161,8 @@
       cursor: pointer;
     }
 
-    #prev-button:hover, #next-button:hover {
+    #prev-button:hover,
+    #next-button:hover {
       background: #444;
     }
 
@@ -190,8 +194,63 @@
     .icon-button:hover {
       background: #444;
     }
+
+    .tracklist-table {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .track-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 16px;
+      background-color: #1c1c1c;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .track-row:hover {
+      background-color: #2a2a2a;
+    }
+
+    .track-number {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .track-title {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .track-artist {
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    .tracklist-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    .tracklist-table {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 0 10px;
+    }
   </style>
 </head>
+
 <body>
   <h1>My Music Library</h1>
 
@@ -199,13 +258,16 @@
   <div id="search-results" class="results-container" style="display: none;"></div>
 
   <div style="margin-bottom: 20px;">
-    <button id="back-to-artist" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+    <button id="back-to-artist"
+      style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
       &larr; Back to artist's albums
     </button>
-    <button id="back-to-home" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+    <button id="back-to-home"
+      style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
       &larr; Back to homepage
     </button>
-    <button id="back-to-homepage" style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
+    <button id="back-to-homepage"
+      style="display: none; background-color: #1db954; border: none; padding: 10px 20px; color: white; font-size: 14px; border-radius: 20px; cursor: pointer;">
       &larr; Back to homepage
     </button>
   </div>
@@ -225,7 +287,8 @@
     <div id="now-playing">Now playing</div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <button id="shuffle-button" class="icon-button" title="Shuffle">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <polyline points="16 3 21 3 21 8" />
           <line x1="4" y1="20" x2="21" y2="3" />
           <polyline points="21 16 21 21 16 21" />
@@ -255,7 +318,7 @@
           <path d="M3 12V9C3 7.89543 3.89543 7 5 7H17V4L22 8L17 12V9H5V15H10" />
           <path d="M21 12V15C21 16.1046 20.1046 17 19 17H7V20L2 16L7 12V15H19V9H14" />
         </svg>
-       </button>
+      </button>
     </div>
   </div>
 
@@ -361,29 +424,31 @@
         <div style="text-align: center; margin: 16px 0;">
           <img src="${album.cover || 'https://via.placeholder.com/300?text=♪'}" alt="${album.album}" style="max-width: 300px; width: 80%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" />
         </div>
-        <ul style="list-style: none; padding-left: 0;">
-          ${album.tracks.map((track, i) => `
-            <li class="track">
-              ${track.track ? `${track.track}. ` : ''}${track.title}
-              <br>
-              <button 
-                class="play-button"
+        <div class="tracklist-wrapper">
+          <div class="tracklist-table">
+            ${album.tracks.map((track, i) => `
+              <div
+                class="track-row"
                 data-url="${track.url}"
                 data-title="${track.title}"
                 data-artist="${track.artist}"
                 data-album="${track.album}"
                 data-cover="${track.cover}"
                 data-index="${i}"
-              >▶ Play</button>
-            </li>
-          `).join('')}
-        </ul>
+               >
+                <div class="track-number">${track.track || i + 1}</div>
+                <div class="track-title">${track.title}</div>
+                <div class="track-artist">${track.artist}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
       `;
     }
 
     function showArtistAlbums(artist) {
       const filtered = albums.filter(a => a.artist === artist);
-        displayAlbums(filtered, artist);
+      displayAlbums(filtered, artist);
 
       document.getElementById('back-to-artist').style.display = 'inline-block';
       document.getElementById('artist-section').style.display = 'none';
@@ -451,6 +516,21 @@
         const album = btn.dataset.album;
         const cover = btn.dataset.cover;
         const index = parseInt(btn.dataset.index, 10);
+
+        const albumTracks = albums.find(a => a.album === album && a.artist === artist)?.tracks || [];
+        playInMiniPlayer(url, title, artist, album, cover, index, albumTracks);
+      }
+    });
+
+    document.addEventListener('click', e => {
+      const trackRow = e.target.closest('.track-row');
+      if (trackRow) {
+        const url = trackRow.dataset.url;
+        const title = trackRow.dataset.title;
+        const artist = trackRow.dataset.artist;
+        const album = trackRow.dataset.album;
+        const cover = trackRow.dataset.cover;
+        const index = parseInt(trackRow.dataset.index, 10);
 
         const albumTracks = albums.find(a => a.album === album && a.artist === artist)?.tracks || [];
         playInMiniPlayer(url, title, artist, album, cover, index, albumTracks);
@@ -631,4 +711,5 @@
     loadAlbums();
   </script>
 </body>
+
 </html>
