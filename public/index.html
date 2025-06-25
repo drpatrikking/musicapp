@@ -182,6 +182,14 @@
       display: block;
       fill: white;
     }
+
+    .icon-button.active {
+      background: #1db954;
+    }
+
+    .icon-button:hover {
+      background: #444;
+    }
   </style>
 </head>
 <body>
@@ -216,19 +224,38 @@
     <img id="mini-cover" src="" alt="Cover">
     <div id="now-playing">Now playing</div>
     <div style="display: flex; gap: 10px; align-items: center;">
+      <button id="shuffle-button" class="icon-button" title="Shuffle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 3 21 3 21 8" />
+          <line x1="4" y1="20" x2="21" y2="3" />
+          <polyline points="21 16 21 21 16 21" />
+          <line x1="15" y1="15" x2="21" y2="21" />
+          <line x1="4" y1="4" x2="9" y2="9" />
+        </svg>
+      </button>
+
       <button id="prev-button" class="icon-button" title="Previous track">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
           <path d="M11 18V6L3 12L11 18Z" />
           <path d="M21 6H19V18H21V6Z" />
         </svg>
       </button>
+
       <audio id="global-player" controls></audio>
+
       <button id="next-button" class="icon-button" title="Next track">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
           <path d="M13 6V18L21 12L13 6Z" />
           <path d="M5 6H7V18H5V6Z" />
         </svg>
       </button>
+
+      <button id="repeat-button" class="icon-button" title="Repeat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 12V9C3 7.89543 3.89543 7 5 7H17V4L22 8L17 12V9H5V15H10" />
+          <path d="M21 12V15C21 16.1046 20.1046 17 19 17H7V20L2 16L7 12V15H19V9H14" />
+        </svg>
+       </button>
     </div>
   </div>
 
@@ -237,6 +264,8 @@
     let currentAlbumTracks = [];
     let currentTrackIndex = -1;
     let lastViewedArtist = null;
+    let isShuffle = false;
+    let isRepeat = false;
 
     function loadAlbums() {
       fetch('/api/albums')
@@ -429,25 +458,49 @@
     });
 
     document.getElementById('global-player').addEventListener('ended', () => {
-      if (
-        currentAlbumTracks.length &&
-        currentTrackIndex >= 0 &&
-        currentTrackIndex < currentAlbumTracks.length - 1
-      ) {
-        currentTrackIndex++;
-        const next = currentAlbumTracks[currentTrackIndex];
-        playInMiniPlayer(
-          next.url,
-          next.title,
-          next.artist || '',
-          next.album || '',
-          next.cover || '',
-          currentTrackIndex,
-          currentAlbumTracks
-        );
-      } else {
-        currentAlbumTracks = [];
-        currentTrackIndex = -1;
+      if (currentAlbumTracks.length) {
+        if (isRepeat) {
+          // Replay current track
+          const player = document.getElementById('global-player');
+          player.currentTime = 0;
+          player.play();
+          return;
+        } else if (isShuffle) {
+          // Play random track (not the same one)
+          let nextIndex;
+          do {
+            nextIndex = Math.floor(Math.random() * currentAlbumTracks.length);
+          } while (nextIndex === currentTrackIndex && currentAlbumTracks.length > 1);
+
+          currentTrackIndex = nextIndex;
+          const next = currentAlbumTracks[currentTrackIndex];
+          playInMiniPlayer(
+            next.url,
+            next.title,
+            next.artist || '',
+            next.album || '',
+            next.cover || '',
+            currentTrackIndex,
+            currentAlbumTracks
+          );
+        } else if (currentTrackIndex < currentAlbumTracks.length - 1) {
+          // Play next track
+          currentTrackIndex++;
+          const next = currentAlbumTracks[currentTrackIndex];
+          playInMiniPlayer(
+            next.url,
+            next.title,
+            next.artist || '',
+            next.album || '',
+            next.cover || '',
+            currentTrackIndex,
+            currentAlbumTracks
+          );
+        } else {
+          // End of album
+          currentAlbumTracks = [];
+          currentTrackIndex = -1;
+        }
       }
     });
 
@@ -563,6 +616,16 @@
           currentAlbumTracks
         );
       }
+    });
+
+    document.getElementById('shuffle-button').addEventListener('click', () => {
+      isShuffle = !isShuffle;
+      document.getElementById('shuffle-button').classList.toggle('active', isShuffle);
+    });
+
+    document.getElementById('repeat-button').addEventListener('click', () => {
+      isRepeat = !isRepeat;
+      document.getElementById('repeat-button').classList.toggle('active', isRepeat);
     });
 
     loadAlbums();
