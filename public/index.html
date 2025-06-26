@@ -34,10 +34,10 @@
     }
 
     .results-container {
-      background-color: #222;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 30px;
+      padding: 0;
+      margin-top: 8px;
+      margin-bottom: 0;
+      background: none;
     }
 
     .result-item {
@@ -196,16 +196,17 @@
     }
 
     .track-row {
-      display: inline-flex;
+      display: flex;
       grid-template-columns: 40px 1fr 1fr;
       gap: 12px;
       align-items: center;
-      padding: 10px 16px;
-      background-color: #1c1c1c;
+      padding: 10px;
+      background-color: #222;
       border-radius: 8px;
       cursor: pointer;
       transition: background-color 0.2s ease;
       white-space: nowrap;
+      margin-bottom: 10px;
     }
 
     .track-row:hover {
@@ -257,7 +258,7 @@
     .search-wrapper {
       display: flex;
       justify-content: center;
-      margin-bottom: 20px;
+      margin-bottom: 4px;
     }
 
     .search-icon-container {
@@ -288,9 +289,10 @@
     .search-results-wrapper {
       display: flex;
       justify-content: center;
-      margin-top: 0 !important;
+      margin-top: 0;
       padding-top: 0;
       overflow-x: auto;
+      width: 100%;
     }
 
     .search-results-table {
@@ -304,6 +306,44 @@
       margin-left: auto;
       padding-left: 16px;
       flex-shrink: 0;
+    }
+
+    .album-clickable {
+      cursor: pointer;
+      color: #1db954;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .album-clickable:hover {
+      text-decoration: underline;
+    }
+
+    .album-entry {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+    }
+
+    .album-entry:hover {
+      background-color: #222;
+    }
+
+    #search-results {
+      display: block;
+    }
+
+    #search-results .track-row {
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+
+    .search-results-wrapper .tracklist-table {
+      width: fit-content;
+      background-color: #222;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 100%;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
@@ -576,32 +616,43 @@
       });
     }
 
-    document.addEventListener('click', e => {
-      if (e.target.classList.contains('play-button')) {
-        const btn = e.target;
-        const url = btn.dataset.url;
-        const title = btn.dataset.title;
-        const artist = btn.dataset.artist;
-        const album = btn.dataset.album;
-        const cover = btn.dataset.cover;
-        const index = parseInt(btn.dataset.index, 10);
+    function openAlbumFromSearch(albumName, artistName) {
+      const album = albums.find(a =>
+        a.album.toLowerCase() === albumName.toLowerCase() &&
+        a.artist.toLowerCase() === artistName.toLowerCase()
+      );
 
-        const albumTracks = albums.find(a => a.album === album && a.artist === artist)?.tracks || [];
-        playInMiniPlayer(url, title, artist, album, cover, index, albumTracks);
+      if (album) {
+        // Preserve the artist source info so the back button works
+        album._fromArtist = artistName;
+        showTracklist(album);
+      } else {
+        alert('Album not found.');
       }
-    });
+    }
 
     document.addEventListener('click', e => {
       const trackRow = e.target.closest('.track-row');
-      if (trackRow) {
+      if (trackRow && trackRow.dataset.url) {
         const url = trackRow.dataset.url;
         const title = trackRow.dataset.title;
         const artist = trackRow.dataset.artist;
         const album = trackRow.dataset.album;
         const cover = trackRow.dataset.cover;
-        const index = parseInt(trackRow.dataset.index, 10);
 
-        const albumTracks = albums.find(a => a.album === album && a.artist === artist)?.tracks || [];
+        // Find the album this track belongs to
+        const albumData = albums.find(a =>
+          a.album.toLowerCase() === album.toLowerCase() &&
+          a.artist.toLowerCase() === artist.toLowerCase()
+        );
+
+        const albumTracks = albumData?.tracks || [];
+
+        // Find correct index of clicked song inside the album
+        const index = albumTracks.findIndex(t =>
+          t.title === title && t.artist === artist
+        );
+
         playInMiniPlayer(url, title, artist, album, cover, index, albumTracks);
       }
     });
@@ -663,48 +714,70 @@
         return;
       }
 
-      let foundSongs = [];
+      let results = [];
 
+      // Collect matching albums as separate entries
       albums.forEach(album => {
-        album.tracks.forEach(track => {
-          const match =
-            track.title.toLowerCase().includes(query) ||
-            album.album.toLowerCase().includes(query) ||
-            album.artist.toLowerCase().includes(query);
+        const albumMatch = album.album.toLowerCase().includes(query) || album.artist.toLowerCase().includes(query);
 
-          if (match) {
-            foundSongs.push({
-              title: track.title,
-              artist: track.artist,
-              album: track.album,
-              url: track.url,
-              cover: track.cover,
-              duration: track.duration
+        if (albumMatch) {
+          results.push({
+            type: 'album',
+            album
+          });
+        }
+
+        album.tracks.forEach(track => {
+          const trackMatch = track.title.toLowerCase().includes(query);
+
+          if (trackMatch) {
+            results.push({
+              type: 'track',
+              track,
+              album
             });
           }
         });
       });
 
+      const resultHtml = results.map((item, i) => {
+        if (item.type === 'album') {
+          const album = item.album;
+          return `
+            <div class="track-row album-entry"
+                 onclick="openAlbumFromSearch('${album.album.replace(/'/g, "\\'")}', '${album.artist.replace(/'/g, "\\'")}')">
+              <img class="track-cover" src="${album.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
+              <div class="track-title"><strong>${album.album}</strong></div>
+              <div class="track-artist">${album.artist}</div>
+              <div class="track-duration">Album</div>
+            </div>
+          `;
+        } else {
+          const { track, album } = item;
+          return `
+            <div
+              class="track-row"
+              data-url="${track.url}"
+              data-title="${track.title}"
+              data-artist="${track.artist}"
+              data-album="${track.album}"
+              data-cover="${track.cover}"
+              data-index="${i}"
+            >
+             <img class="track-cover" src="${track.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
+             <div class="track-number">${track.track || i + 1}</div>
+             <div class="track-title">${track.title}</div>
+             <div class="track-artist">${track.artist}</div>
+             <div class="track-duration">${track.duration || ''}</div>
+            </div>
+          `;
+        }
+      }).join('');
+
       resultsContainer.innerHTML = `
         <div class="search-results-wrapper">
-          <div class="tracklist-table search-results-table">
-            ${foundSongs.map((song, i) => `
-              <div
-                class="track-row"
-                data-url="${song.url}"
-                data-title="${song.title}"
-                data-artist="${song.artist}"
-                data-album="${song.album}"
-                data-cover="${song.cover}"
-                data-index="${i}"
-               >
-                <img class="track-cover" src="${song.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
-                <div class="track-number">${i + 1}</div>
-                <div class="track-title">${song.title}</div>
-                <div class="track-artist">${song.artist}</div>
-                <div class="track-duration">${song.duration || ''}</div>
-              </div>
-            `).join('')}
+          <div class="tracklist-table">
+            ${resultHtml}
           </div>
         </div>
       `;
