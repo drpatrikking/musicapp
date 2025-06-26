@@ -241,6 +241,7 @@
       display: flex;
       justify-content: center;
       margin-top: 20px;
+      overflow-x: auto;
     }
 
     .tracklist-table {
@@ -282,6 +283,19 @@
       border-radius: 4px;
       margin-right: 12px;
       flex-shrink: 0;
+    }
+
+    .search-results-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 0 !important;
+      padding-top: 0;
+      overflow-x: auto;
+    }
+
+    .search-results-table {
+      margin-top: 0 !important;
+      gap: 8px;
     }
   </style>
 </head>
@@ -659,21 +673,28 @@
         });
       });
 
-      resultsContainer.innerHTML = foundSongs.map((song, i) => `
-        <div class="result-item">
-          <div class="result-title">${song.title}</div>
-          <div class="result-meta">${song.artist} — ${song.album}</div>
-          <button 
-            class="play-button"
-            data-url="${song.url}"
-            data-title="${song.title}"
-            data-artist="${song.artist}"
-            data-album="${song.album}"
-            data-cover="${song.cover}"
-            data-index="${i}"
-          >▶ Play</button>
+      resultsContainer.innerHTML = `
+        <div class="search-results-wrapper">
+          <div class="tracklist-table search-results-table">
+            ${foundSongs.map((song, i) => `
+              <div
+                class="track-row"
+                data-url="${song.url}"
+                data-title="${song.title}"
+                data-artist="${song.artist}"
+                data-album="${song.album}"
+                data-cover="${song.cover}"
+                data-index="${i}"
+               >
+                <img class="track-cover" src="${song.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
+                <div class="track-number">${i + 1}</div>
+                <div class="track-title">${song.title}</div>
+                <div class="track-artist">${song.artist}</div>
+              </div>
+            `).join('')}
+          </div>
         </div>
-      `).join('');
+      `;
 
       resultsContainer.style.display = 'block';
     });
