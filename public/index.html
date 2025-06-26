@@ -297,6 +297,14 @@
       margin-top: 0 !important;
       gap: 8px;
     }
+
+    .track-duration {
+      color: #aaa;
+      font-size: 14px;
+      margin-left: auto;
+      padding-left: 16px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 
@@ -499,6 +507,7 @@
                 <div class="track-number">${track.track || i + 1}</div>
                 <div class="track-title">${track.title}</div>
                 <div class="track-artist">${track.artist}</div>
+                <div class="track-duration">${track.duration || ''}</div>
               </div>
             `).join('')}
           </div>
@@ -669,7 +678,8 @@
               artist: track.artist,
               album: track.album,
               url: track.url,
-              cover: track.cover
+              cover: track.cover,
+              duration: track.duration
             });
           }
         });
@@ -692,6 +702,7 @@
                 <div class="track-number">${i + 1}</div>
                 <div class="track-title">${song.title}</div>
                 <div class="track-artist">${song.artist}</div>
+                <div class="track-duration">${song.duration || ''}</div>
               </div>
             `).join('')}
           </div>

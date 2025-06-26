@@ -42,6 +42,11 @@ async function getAlbums(dir) {
       const track = parseInt(common.track?.no) || 0;
       const filename = path.basename(filePath).toLowerCase();
 
+      const durationSeconds = metadata.format.duration || 0;
+      const minutes = Math.floor(durationSeconds / 60);
+      const seconds = Math.floor(durationSeconds % 60).toString().padStart(2, '0');
+      const trackDuration = `${minutes}:${seconds}`;
+
       const relativePath = path.relative(musicDir, filePath).replace(/\\/g, '/');
       const url = `/music/${relativePath}`;
       const albumKey = `${artist} - ${album}`;
@@ -70,6 +75,12 @@ async function getAlbums(dir) {
         };
       }
 
+      function formatDuration(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      }
+
       albumsMap[albumKey].tracks.push({
         title,
         track,
@@ -77,7 +88,8 @@ async function getAlbums(dir) {
         url,
         album,
         artist,
-        cover
+        cover,
+        duration: formatDuration(duration),
       });
 
     } catch (err) {
