@@ -740,47 +740,59 @@
         });
       });
 
-      const resultHtml = results.map((item, i) => {
-        if (item.type === 'album') {
-          const album = item.album;
-          return `
-            <div class="track-row album-entry"
-                 onclick="openAlbumFromSearch('${album.album.replace(/'/g, "\\'")}', '${album.artist.replace(/'/g, "\\'")}')">
-              <img class="track-cover" src="${album.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
-              <div class="track-title"><strong>${album.album}</strong></div>
-              <div class="track-artist">${album.artist}</div>
-              <div class="track-duration">Album</div>
-            </div>
-          `;
-        } else {
-          const { track, album } = item;
-          return `
-            <div
-              class="track-row"
-              data-url="${track.url}"
-              data-title="${track.title}"
-              data-artist="${track.artist}"
-              data-album="${track.album}"
-              data-cover="${track.cover}"
-              data-index="${i}"
-            >
-             <img class="track-cover" src="${track.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
-             <div class="track-number">${track.track || i + 1}</div>
-             <div class="track-title">${track.title}</div>
-             <div class="track-artist">${track.artist}</div>
-             <div class="track-duration">${track.duration || ''}</div>
-            </div>
-          `;
-        }
-      }).join('');
+      if (results.length > 0) {
+        const resultHtml = results.map((item, i) => {
+          if (item.type === 'album') {
+            const album = item.album;
+            return `
+              <div class="track-row album-entry"
+                   onclick="openAlbumFromSearch('${album.album.replace(/'/g, "\\'")}', '${album.artist.replace(/'/g, "\\'")}')">
+                <img class="track-cover" src="${album.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
+                <div class="track-title"><strong>${album.album}</strong></div>
+                <div class="track-artist">${album.artist}</div>
+                <div class="track-duration">Album</div>
+              </div>
+            `;
+          } else {
+            const { track, album } = item;
+            return `
+              <div
+                class="track-row"
+                data-url="${track.url}"
+                data-title="${track.title}"
+                data-artist="${track.artist}"
+                data-album="${track.album}"
+                data-cover="${track.cover}"
+                data-index="${i}"
+              >
+               <img class="track-cover" src="${track.cover || 'https://via.placeholder.com/40?text=♪'}" alt="cover" />
+               <div class="track-number">${track.track || i + 1}</div>
+               <div class="track-title">${track.title}</div>
+               <div class="track-artist">${track.artist}</div>
+               <div class="track-duration">${track.duration || ''}</div>
+              </div>
+            `;
+          }
+        }).join('');
 
-      resultsContainer.innerHTML = `
-        <div class="search-results-wrapper">
-          <div class="tracklist-table">
-            ${resultHtml}
+        resultsContainer.innerHTML = `
+          <div class="search-results-wrapper">
+            <div class="tracklist-table">
+              ${resultHtml}
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      } else {
+        resultsContainer.innerHTML = `
+          <div class="search-results-wrapper">
+            <div class="tracklist-table">
+              <div class="no-results-message" style="text-align:center; color:#aaa; padding:20px; font-size:18px;">
+                No results found.
+              </div>
+            </div>
+          </div>
+        `;
+      }
 
       resultsContainer.style.display = 'block';
     });
@@ -849,14 +861,29 @@
       }
     });
 
-    document.getElementById('shuffle-button').addEventListener('click', () => {
+    const shuffleButton = document.getElementById('shuffle-button');
+    const repeatButton = document.getElementById('repeat-button');
+
+    shuffleButton.addEventListener('click', () => {
       isShuffle = !isShuffle;
-      document.getElementById('shuffle-button').classList.toggle('active', isShuffle);
+      shuffleButton.classList.toggle('active', isShuffle);
+
+      if (isShuffle) {
+        // turn off repeat if shuffle turned on
+        isRepeat = false;
+        repeatButton.classList.remove('active');
+      }
     });
 
-    document.getElementById('repeat-button').addEventListener('click', () => {
+    repeatButton.addEventListener('click', () => {
       isRepeat = !isRepeat;
-      document.getElementById('repeat-button').classList.toggle('active', isRepeat);
+      repeatButton.classList.toggle('active', isRepeat);
+
+      if (isRepeat) {
+        // turn off shuffle if repeat turned on
+        isShuffle = false;
+        shuffleButton.classList.remove('active');
+      }
     });
 
     loadAlbums();
