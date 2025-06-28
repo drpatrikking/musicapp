@@ -886,6 +886,36 @@
       }
     });
 
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+
+      console.log('Token on page load:', token);
+
+      if (token) {
+        fetch('/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => {
+            if (!res.ok) throw new Error('Not logged in');
+            return res.json();
+          })
+          .then(profile => {
+            console.log('Logged in as:', profile.username);
+            const userInfo = document.createElement('div');
+            userInfo.style.color = 'white';
+            userInfo.textContent = `Logged in as: ${profile.username}`;
+            document.body.prepend(userInfo);
+          })
+          .catch(err => {
+            console.log('Profile fetch failed:', err);
+            window.location.href = '/register';
+          });
+      } else {
+        console.log('No token found, redirecting to register...');
+        window.location.href = '/register';
+      }
+    });
+
     loadAlbums();
   </script>
 </body>

@@ -3,14 +3,31 @@ const fs = require('fs');
 const path = require('path');
 const mm = require('music-metadata');
 const mime = require('mime-types');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const port = 3000;
 
 const musicDir = "C:\\Users\\Asus\\Music\\MusicApp";
 
+const User = require('./models/User');
+
 app.use('/music', express.static(musicDir));
 app.use(express.static('public'));
+app.use(express.json());
+app.use(cors());
+app.use(express.static('public'));
+
+mongoose.connect('mongodb://localhost:27017/musicapp', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error(err));
 
 async function getAlbums(dir) {
   const albumsMap = {};
@@ -108,6 +125,54 @@ async function getAlbums(dir) {
   return Object.values(albumsMap);
 }
 
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+  const existingUser = await User.findOne({ username });
+  if (existingUser) return res.status(400).json({ error: 'Username already taken' });
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = new User({ username, password: hashedPassword });
+  await user.save();
+
+  res.json({ message: 'User registered successfully' });
+});
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username });
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) return res.status(401).json({ error: 'Invalid credentials' });
+
+  const token = jwt.sign({ userId: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  res.json({ token });
+});
+
+app.get('/profile', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ userId: decoded.userId, username: decoded.username });
+  } catch (e) {
+    console.error('Token verification failed:', e.message);
+    res.sendStatus(403);
+  }
+});
+
+app.get('/register', (req, res) => {
+  res.sendFile(__dirname + '/public/register.html');
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(__dirname + '/public/login.html');
+});
+
 app.get('/api/albums', async (req, res) => {
   try {
     const albums = await getAlbums(musicDir);
@@ -119,6 +184,4 @@ app.get('/api/albums', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`🎵 Music server running at http://localhost:${port}`);
-});
+app.listen(3000, () => console.log('🚀 Unified server running at http://localhost:3000'));
