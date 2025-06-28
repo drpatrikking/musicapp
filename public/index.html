@@ -900,11 +900,46 @@
             return res.json();
           })
           .then(profile => {
+            console.log('Adding user info and logout button...');
             console.log('Logged in as:', profile.username);
+
+            // Create user info display
             const userInfo = document.createElement('div');
             userInfo.style.color = 'white';
             userInfo.textContent = `Logged in as: ${profile.username}`;
-            document.body.prepend(userInfo);
+
+            // Create logout button
+            const logoutButton = document.createElement('button');
+            logoutButton.textContent = 'Logout';
+            logoutButton.style.background = 'none';
+            logoutButton.style.border = '1px solid #1db954';
+            logoutButton.style.color = '#1db954';
+            logoutButton.style.cursor = 'pointer';
+            logoutButton.style.fontSize = '14px';
+            logoutButton.style.marginTop = '8px';
+            logoutButton.style.padding = '4px 8px';
+            logoutButton.style.borderRadius = '4px';
+
+            // Logout functionality
+            logoutButton.addEventListener('click', () => {
+              localStorage.removeItem('token');
+              window.location.href = '/login'; // redirect to login page after logout
+            });
+
+            // Container to hold user info and button together
+            const userContainer = document.createElement('div');
+            userContainer.style.display = 'flex';
+            userContainer.style.flexDirection = 'column';
+            userContainer.style.alignItems = 'flex-end';
+            userContainer.style.position = 'absolute';
+            userContainer.style.top = '20px';
+            userContainer.style.right = '20px';
+            userContainer.style.zIndex = '9999';
+            userContainer.appendChild(userInfo);
+            userContainer.appendChild(logoutButton);
+
+            // Add to the page
+            document.body.prepend(userContainer);
           })
           .catch(err => {
             console.log('Profile fetch failed:', err);
