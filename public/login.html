@@ -1,29 +1,103 @@
-<h2>Login</h2>
-<form id="login-form">
-    <input name="username" placeholder="Username" required />
-    <input name="password" type="password" placeholder="Password" required />
-    <button type="submit">Login</button>
-</form>
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #121212;
+      color: white;
+      font-family: "Helvetica Neue", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .auth-container {
+      background-color: #181818;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .auth-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .auth-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #1db954;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .auth-container button:hover {
+      background-color: #17a74a;
+    }
+
+    .auth-container .switch-link {
+      margin-top: 20px;
+      color: #1db954;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Login</h1>
+    <form id="login-form">
+      <input name="username" placeholder="Username" required />
+      <input name="password" type="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <div class="switch-link" onclick="window.location.href='register.html'">
+      Don't have an account? Register here.
+    </div>
+  </div>
+
+  <script>
     document.getElementById('login-form').addEventListener('submit', async e => {
-        e.preventDefault();
-        const username = e.target.username.value;
-        const password = e.target.password.value;
+      e.preventDefault();
+      const username = e.target.username.value;
+      const password = e.target.password.value;
 
-        const res = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
 
-        if (data.token) {
-            console.log('Token received:', data.token);
-            localStorage.setItem('token', data.token);
-            alert('Logged in successfully');
-            window.location.href = 'http://localhost:3000/';
-        } else {
-            alert(data.error);
-        }
+      if (data.token) {
+        console.log('Token received:', data.token);
+        localStorage.setItem('token', data.token);
+        alert('Logged in successfully');
+        window.location.href = 'http://localhost:3000/';
+      } else {
+        alert(data.error);
+      }
     });
-</script>
+  </script>
+</body>
+</html>
