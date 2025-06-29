@@ -151,16 +151,27 @@ app.post('/login', async (req, res) => {
   res.json({ token });
 });
 
-app.get('/profile', (req, res) => {
+app.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
 
   try {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ userId: decoded.userId, username: decoded.username });
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      console.error('User not found for decoded userId:', decoded.userId);
+      return res.sendStatus(404);
+    }
+
+    res.json({
+      userId: user._id,
+      username: user.username,
+      createdAt: user.createdAt || null
+    });
   } catch (e) {
-    console.error('Token verification failed:', e.message);
+    console.error('Token verification failed or DB error:', e.message);
     res.sendStatus(403);
   }
 });
