@@ -70,24 +70,49 @@
       .then(profile => {
         const profileInfoDiv = document.getElementById('profile-info');
 
+        let html = `<div>Profile Name: ${profile.username}</div>`;
+
         if (!profile.createdAt) {
-            profileInfoDiv.innerHTML = `
-              <div>Profile Name: ${profile.username}</div>
-              <div>Account creation date not available.</div>
-            `;
-            return;
+          const createdDate = new Date(profile.createdAt);
+          const now = new Date()
+          const ageMs = now - createdDate;
+          const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+
+          html += `
+           <div>Account Age: ${ageDays} day${ageDays !== 1 ? 's' : ''}</div>
+           <div>Created At: ${createdDate.toLocaleString()}</div>
+          `;
+        } else {
+          html += `<div>Account creation date not available.</div>`;
         }
 
-        const createdDate = new Date(profile.createdAt);
-        const now = new Date();
-        const ageMs = now - createdDate;
-        const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+        profileInfoDiv.innerHTML = html;
 
-        profileInfoDiv.innerHTML = `
-          <div>Profile Name: ${profile.username}</div>
-          <div>Account Age: ${ageDays} day${ageDays !== 1 ? 's' : ''}</div>
-          <div>Created At: ${createdDate.toLocaleString()}</div>
-        `;
+        if (profile.listeningHistory && profile.listeningHistory.length > 0) {
+          const recentHistory = profile.listeningHistory
+            .slice(-10)
+            .reverse();
+          
+          const historyList = recentHistory
+            .map(track => {
+              const playedDate = new Date(track.playedAt).toLocaleString();
+              return `<li>${track.songName} – ${track.albumName} by ${track.artistName} (${playedDate})</li>`;
+            })
+            .join('');
+
+          const historySection = document.createElement('div');
+          historySection.innerHTML = `
+            <h3 style="margin-top: 20px; color: #1db954;">Listening History</h3>
+            <ul style="list-style: none; padding: 0; font-size: 14px;">${historyList}</ul>
+          `;
+
+          profileInfoDiv.appendChild(historySection);
+        } else {
+          const noHistory = document.createElement('div');
+          noHistory.textContent = 'No listening history available.';
+          noHistory.style.marginTop = '20px';
+          profileInfoDiv.appendChild(noHistory);
+        }
       })
       .catch(() => {
         alert('Session expired or not logged in. Redirecting to login.');

@@ -151,6 +151,32 @@ app.post('/login', async (req, res) => {
   res.json({ token });
 });
 
+app.post('/track-play', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { songName, albumName, artistName } = req.body;
+    if (!songName || !albumName || !artistName) {
+      return res.status(400).json({ error: 'Missing song, album, or artist info' });
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.sendStatus(404);
+
+    user.listeningHistory.push({ songName, albumName, artistName });
+    await user.save();
+
+    res.json({ message: 'Track added to listening history' });
+  } catch (e) {
+    console.error('Error recording track play:', e.message);
+    res.sendStatus(403);
+  }
+});
+
 app.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
@@ -168,7 +194,8 @@ app.get('/profile', async (req, res) => {
     res.json({
       userId: user._id,
       username: user.username,
-      createdAt: user.createdAt || null
+      createdAt: user.createdAt || null,
+      listeningHistory: user.listeningHistory
     });
   } catch (e) {
     console.error('Token verification failed or DB error:', e.message);

@@ -661,6 +661,28 @@
 
       player.src = url;
       player.play();
+
+      const token = localStorage.getItem('token');
+      if (token) {
+        fetch('/track-play', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            songName: title,
+            albumName: album,
+            artistName: artist
+          })
+        })
+        .then(res => res.json())
+        .then(data => console.log('Track recorded:', data))
+        .catch(err => console.error('Error recording track:', err));
+      } else {
+        console.log('No token found; not recording track play.');
+      }
+      
       display.innerHTML = `${title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${artist} – ${album}`;
       bar.style.display = 'flex';
 
