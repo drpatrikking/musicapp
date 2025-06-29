@@ -345,10 +345,65 @@
       max-width: 100%;
       box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
     }
+
+    .hamburger-container {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10000;
+    }
+
+    .hamburger-icon {
+      font-size: 28px;
+      color: #1db954;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .hamburger-menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 40px;
+      left: 0;
+      background-color: #181818;
+      padding: 10px;
+      min-width: 120px;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .hamburger-menu .menu-link {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      margin: 5px 0;
+      cursor: pointer;
+    }
+
+    .hamburger-menu .menu-link:hover {
+      color: #1db954;
+    }
+
+    .hamburger-menu.show {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 
 <body>
+  <div class="hamburger-container">
+    <div class="hamburger-icon" onclick="toggleMenu()">
+      &#9776;
+    </div>
+    <div class="hamburger-menu" id="hamburger-menu">
+      <div class="menu-link" onclick="window.location.href='/profile.html'">Profile</div>
+    </div>
+  </div>
+
   <h1>My Music Library</h1>
 
   <div class="search-wrapper">
@@ -436,6 +491,17 @@
     let lastViewedArtist = null;
     let isShuffle = false;
     let isRepeat = false;
+
+    function toggleMenu() {
+      const menu = document.getElementById('hamburger-menu');
+      if (menu.classList.contains('show')) {
+        menu.classList.remove('show');
+        setTimeout(() => menu.style.display = 'none', 300);
+      } else {
+        menu.style.display = 'flex';
+        requestAnimationFrame(() => menu.classList.add('show'));
+      }
+    }
 
     function loadAlbums() {
       fetch('/api/albums')
