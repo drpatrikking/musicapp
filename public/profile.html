@@ -68,7 +68,26 @@
         return res.json();
       })
       .then(profile => {
-        document.getElementById('profile-info').textContent = `Profile Name: ${profile.username}`;
+        const profileInfoDiv = document.getElementById('profile-info');
+
+        if (!profile.createdAt) {
+            profileInfoDiv.innerHTML = `
+              <div>Profile Name: ${profile.username}</div>
+              <div>Account creation date not available.</div>
+            `;
+            return;
+        }
+
+        const createdDate = new Date(profile.createdAt);
+        const now = new Date();
+        const ageMs = now - createdDate;
+        const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+
+        profileInfoDiv.innerHTML = `
+          <div>Profile Name: ${profile.username}</div>
+          <div>Account Age: ${ageDays} day${ageDays !== 1 ? 's' : ''}</div>
+          <div>Created At: ${createdDate.toLocaleString()}</div>
+        `;
       })
       .catch(() => {
         alert('Session expired or not logged in. Redirecting to login.');
