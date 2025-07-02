@@ -89,10 +89,9 @@
         profileInfoDiv.innerHTML = html;
 
         if (profile.listeningHistory && profile.listeningHistory.length > 0) {
-          const recentHistory = profile.listeningHistory
-            .slice(-10)
-            .reverse();
-          
+          const history = profile.listeningHistory;
+
+          const recentHistory = history.slice(-10).reverse();
           const historyList = recentHistory
             .map(track => {
               const playedDate = new Date(track.playedAt).toLocaleString();
@@ -100,13 +99,43 @@
             })
             .join('');
 
-          const historySection = document.createElement('div');
-          historySection.innerHTML = `
-            <h3 style="margin-top: 20px; color: #1db954;">Listening History</h3>
+          const recentSection = document.createElement('div');
+          recentSection.innerHTML = `
+            <h3 style="margin-top: 20px; color: #1db954;">Recent Listening History</h3>
             <ul style="list-style: none; padding: 0; font-size: 14px;">${historyList}</ul>
           `;
 
-          profileInfoDiv.appendChild(historySection);
+          profileInfoDiv.appendChild(recentSection);
+
+          const songCounts = {}, albumCounts = {}, artistCounts = {};
+          history.forEach(track => {
+            songCounts[track.songName] = (songCounts[track.songName] || 0) + 1;
+            albumCounts[track.albumName] = (albumCounts[track.albumName] || 0) + 1;
+            artistCounts[track.artistName] = (artistCounts[track.artistName] || 0) + 1;
+          });
+
+          function getMostPlayed(counts) {
+            return Object.entries(counts).reduce(
+              (max, entry) => entry[1] > max[1] ? entry : max,
+              ['', 0]
+            );
+          }
+
+          const totalSongs = history.length;
+          const [mostPlayedSong, mostPlayedSongCount] = getMostPlayed(songCounts);
+          const [mostPlayedAlbum, mostPlayedAlbumCount] = getMostPlayed(albumCounts);
+          const [mostPlayedArtist, mostPlayedArtistCount] = getMostPlayed(artistCounts);
+
+          const statsSection = document.createElement('div');
+          statsSection.innerHTML = `
+            <h3 style="margin-top: 20px; color: #1db954;">Listening Stats</h3>
+            <div>Total Songs Listened: ${totalSongs}</div>
+            <div>Most Played Song: ${mostPlayedSong || 'N/A'} (${mostPlayedSongCount} play${mostPlayedSongCount !== 1 ? 's' : ''})</div>
+            <div>Most Played Album: ${mostPlayedAlbum || 'N/A'} (${mostPlayedAlbumCount} play${mostPlayedAlbumCount !== 1 ? 's' : ''})</div>
+            <div>Most Played Artist: ${mostPlayedArtist || 'N/A'} (${mostPlayedArtistCount} play${mostPlayedArtistCount !== 1 ? 's' : ''})</div>
+          `;
+
+          profileInfoDiv.appendChild(statsSection);
         } else {
           const noHistory = document.createElement('div');
           noHistory.textContent = 'No listening history available.';
