@@ -191,6 +191,13 @@ app.get('/profile', async (req, res) => {
       return res.sendStatus(404);
     }
 
+    console.log('Sending profile:', {
+      userId: user._id,
+      username: user.username,
+      createdAt: user.createdAt,
+      listeningHistoryCount: user.listeningHistory?.length
+    });
+
     res.json({
       userId: user._id,
       username: user.username,

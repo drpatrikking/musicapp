@@ -72,7 +72,7 @@
 
         let html = `<div>Profile Name: ${profile.username}</div>`;
 
-        if (!profile.createdAt) {
+        if (profile.createdAt) {
           const createdDate = new Date(profile.createdAt);
           const now = new Date()
           const ageMs = now - createdDate;
