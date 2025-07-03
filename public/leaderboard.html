@@ -39,13 +39,35 @@
     .leaderboard-entry:last-child {
       border-bottom: none;
     }
+    .back-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #1db954;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .back-button:hover {
+      background-color: #17a74a;
+    }
+    .subtitle {
+      color: #aaa;
+      font-size: 18px;
+      text-align: center;
+      margin: -10px 0 20px 0;
+    }
   </style>
 </head>
 <body>
   <div class="leaderboard-container">
     <h1>Leaderboard</h1>
+    <p class="subtitle">Most Songs Played</p>
     <div id="leaderboard-entries">Loading leaderboard...</div>
   </div>
+<button class="back-button" onclick="window.location.href='/'">Back to Library</button>
 
   <script>
     const token = localStorage.getItem('token');
