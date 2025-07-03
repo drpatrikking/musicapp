@@ -229,4 +229,26 @@ app.get('/api/albums', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('🚀 Unified server running at http://localhost:3000'));
+app.get('/leaderboard', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
+
+  try {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET);
+
+    const users = await User.find({}, 'username listeningHistory').lean();
+    const leaderboard = users.map(user => ({
+      username: user.username,
+      totalPlays: user.listeningHistory?.length || 0
+    }))
+    .sort((a, b) => b.totalPlays - a.totalPlays);
+
+    res.json(leaderboard);
+  } catch (e) {
+    console.error('Leaderboard route error:', e.message);
+    res.sendStatus(403);
+  }
+});
+
+app.listen(3000, () => console.log('Server running at http://localhost:3000'));

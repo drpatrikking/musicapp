@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Leaderboard</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #121212;
+      color: white;
+      font-family: "Helvetica Neue", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 80px;
+    }
+    .leaderboard-container {
+      background-color: #181818;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      width: 600px;
+      max-width: 90%;
+    }
+    .leaderboard-container h1 {
+      color: #1db954;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .leaderboard-entry {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+      font-size: 18px;
+    }
+    .leaderboard-entry:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="leaderboard-container">
+    <h1>Leaderboard</h1>
+    <div id="leaderboard-entries">Loading leaderboard...</div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('/leaderboard', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Unauthorized');
+        return res.json();
+      })
+      .then(data => {
+        const container = document.getElementById('leaderboard-entries');
+        container.innerHTML = data.map((user, index) => `
+          <div class="leaderboard-entry">
+            <div>${index + 1}. ${user.username}</div>
+            <div>${user.totalPlays} song${user.totalPlays !== 1 ? 's' : ''}</div>
+          </div>
+        `).join('');
+      })
+      .catch(err => {
+        console.error('Leaderboard error:', err);
+        alert('Unauthorized or error loading leaderboard.');
+        window.location.href = '/login';
+      });
+    } else {
+      alert('Not logged in. Redirecting to login.');
+      window.location.href = '/login';
+    }
+  </script>
+</body>
+</html>
