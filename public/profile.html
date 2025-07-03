@@ -33,27 +33,12 @@
       font-size: 18px;
       margin-bottom: 20px;
     }
-    .back-button {
-      width: 100%;
-      padding: 12px;
-      background-color: #1db954;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .back-button:hover {
-      background-color: #17a74a;
-    }
   </style>
 </head>
 <body>
   <div class="profile-container">
     <h1>My Profile</h1>
     <div class="profile-info" id="profile-info">Loading profile...</div>
-    <button class="back-button" onclick="goBack()">Back to Library</button>
   </div>
 
   <script>
@@ -150,11 +135,6 @@
     } else {
       alert('Not logged in. Redirecting to login.');
       window.location.href = '/login';
-    }
-
-    // Back to library button function
-    function goBack() {
-      window.location.href = '/';
     }
   </script>
 </body>
