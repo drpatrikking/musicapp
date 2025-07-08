@@ -593,6 +593,8 @@
       }
 
       const content = document.getElementById('tracklist-content');
+      const orderedTracks = [];
+
       content.innerHTML = `
         <h2 style="text-align: center;">${album.album} – ${album.artist}</h2>
         <div style="text-align: center; margin: 16px 0;">
@@ -600,26 +602,54 @@
         </div>
         <div class="tracklist-wrapper">
           <div class="tracklist-table">
-            ${album.tracks.map((track, i) => `
-              <div
-                class="track-row"
-                data-url="${track.url}"
-                data-title="${track.title}"
-                data-artist="${track.artist}"
-                data-album="${track.album}"
-                data-cover="${track.cover}"
-                data-index="${i}"
-               >
-                <img class="track-cover" src="${track.cover || album.cover}" alt="cover" />
-                <div class="track-number">${track.track || i + 1}</div>
-                <div class="track-title">${track.title}</div>
-                <div class="track-artist">${track.artist}</div>
-                <div class="track-duration">${track.duration || ''}</div>
-              </div>
-            `).join('')}
+            ${(() => {
+              const grouped = {};
+              album.tracks.forEach(track => {
+                const folder = track.folder || 'main';
+                if (!grouped[folder]) grouped[folder] = [];
+                grouped[folder].push(track);
+              });
+
+              let first = true;
+              return Object.entries(grouped)
+                .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+                .map(([folder, tracks]) => {
+                  const gap = first ? '' : `<div style="margin: 20px 0;"></div>`;
+                  first = false;
+
+                  return `
+                    ${gap}
+                    ${tracks.map(track => {
+                      const realIndex = orderedTracks.length;
+                      orderedTracks.push(track);
+
+                      return `
+                      <div
+                        class="track-row"
+                        data-url="${track.url}"
+                        data-title="${track.title}"
+                        data-artist="${track.artist}"
+                        data-album="${track.album}"
+                        data-cover="${track.cover}"
+                        data-index="${realIndex}"
+                       >
+                        <img class="track-cover" src="${track.cover || album.cover}" alt="cover" />
+                        <div class="track-number">${track.track || i + 1}</div>
+                        <div class="track-title">${track.title}</div>
+                        <div class="track-artist">${track.artist}</div>
+                        <div class="track-duration">${track.duration || ''}</div>
+                      </div>
+                    `;
+                  }).join('')}
+                `;
+              }).join('');
+            })()}
           </div>
         </div>
       `;
+
+      currentAlbumTracks = orderedTracks;
+      window.albumTracks = orderedTracks;
     }
 
     function showArtistAlbums(artist) {
@@ -748,13 +778,7 @@
           a.artist.toLowerCase() === artist.toLowerCase()
         );
 
-        const albumTracks = albumData?.tracks || [];
-
-        // Find correct index of clicked song inside the album
-        const index = albumTracks.findIndex(t =>
-          t.title === title && t.artist === artist
-        );
-
+        const index = parseInt(trackRow.dataset.index, 10);
         playInMiniPlayer(url, title, artist, album, cover, index, albumTracks);
       }
     });

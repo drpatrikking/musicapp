@@ -68,6 +68,7 @@ async function getAlbums(dir) {
       const url = `/music/${relativePath}`;
       const albumKey = `${artist} - ${album}`;
       const albumDir = path.dirname(path.join(musicDir, relativePath));
+      const folder = path.basename(path.dirname(filePath));
 
       // Get cover
       let cover = null;
@@ -107,6 +108,7 @@ async function getAlbums(dir) {
         artist,
         cover,
         duration: formatDuration(duration),
+        folder
       });
 
     } catch (err) {
