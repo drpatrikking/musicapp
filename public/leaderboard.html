@@ -32,6 +32,7 @@
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       padding: 10px 0;
       border-bottom: 1px solid #333;
       font-size: 18px;
@@ -44,6 +45,14 @@
       font-size: 18px;
       text-align: center;
       margin: -10px 0 20px 0;
+    }
+    .leaderboard-name {
+      text-align: left;
+      flex: 1;
+    }
+    .leaderboard-count {
+      text-align: right;
+      color: #aaa;
     }
   </style>
 </head>
@@ -66,12 +75,17 @@
       })
       .then(data => {
         const container = document.getElementById('leaderboard-entries');
-        container.innerHTML = data.map((user, index) => `
-          <div class="leaderboard-entry">
-            <div>${index + 1}. ${user.username}</div>
-            <div>${user.totalPlays} song${user.totalPlays !== 1 ? 's' : ''}</div>
-          </div>
-        `).join('');
+        container.innerHTML = data.map((user, index) => {
+          const medals = ['🥇', '🥈', '🥉'];
+          const medal = medals[index] || '';
+
+          return `
+            <div class="leaderboard-entry">
+              <span class="leaderboard-name">${medal} ${index + 1}. ${user.username}</span>
+              <span class="leaderboard-count">${user.totalPlays} song${user.totalPlays !== 1 ? 's' : ''}</span>
+            </div>
+          `;
+        }).join('');
       })
       .catch(err => {
         console.error('Leaderboard error:', err);
