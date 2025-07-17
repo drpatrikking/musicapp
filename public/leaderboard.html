@@ -33,11 +33,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
+      padding: 10px 14px;
       border-bottom: 1px solid #333;
       font-size: 18px;
+      transition: background-color 0.2s ease;
+      cursor: default;
+    }
+    .leaderboard-entry:first-child {
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
     }
     .leaderboard-entry:last-child {
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
       border-bottom: none;
     }
     .subtitle {
@@ -53,6 +61,10 @@
     .leaderboard-count {
       text-align: right;
       color: #aaa;
+    }
+    .leaderboard-entry:hover {
+      background-color: #1db95422;
+      border-radius: 8px;
     }
   </style>
 </head>
