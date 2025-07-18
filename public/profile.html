@@ -33,12 +33,32 @@
       font-size: 18px;
       margin-bottom: 20px;
     }
+    .divider {
+      border: none;
+      border-top: 1px solid #444;
+      margin: 20px 0;
+      width: 100%;
+    }
+    .profile-info h3 {
+      color: #1db954;
+      margin-bottom: 10px;
+    }
+    ul {
+      margin: 0;
+      padding-left: 0;
+    }
   </style>
 </head>
 <body>
   <div class="profile-container">
     <h1>My Profile</h1>
-    <div class="profile-info" id="profile-info">Loading profile...</div>
+    <div class="profile-info" id="profile-info">
+      <div id="profile-basic"></div>
+      <hr class="divider" />
+      <div id="profile-history"></div>
+      <hr class="divider" />
+      <div id="profile-stats"></div>
+    </div>
   </div>
 
   <script>
@@ -53,25 +73,23 @@
         return res.json();
       })
       .then(profile => {
-        const profileInfoDiv = document.getElementById('profile-info');
-
+        const profileBasic = document.getElementById('profile-basic');
         let html = `<div>Profile Name: ${profile.username}</div>`;
 
         if (profile.createdAt) {
           const createdDate = new Date(profile.createdAt);
-          const now = new Date()
+          const now = new Date();
           const ageMs = now - createdDate;
           const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
 
           html += `
-           <div>Account Age: ${ageDays} day${ageDays !== 1 ? 's' : ''}</div>
-           <div>Created At: ${createdDate.toLocaleString()}</div>
+            <div>Account Age: ${ageDays} day${ageDays !== 1 ? 's' : ''}</div>
+            <div>Created At: ${createdDate.toLocaleString()}</div>
           `;
         } else {
           html += `<div>Account creation date not available.</div>`;
         }
-
-        profileInfoDiv.innerHTML = html;
+        profileBasic.innerHTML = html;
 
         if (profile.listeningHistory && profile.listeningHistory.length > 0) {
           const history = profile.listeningHistory;
@@ -84,13 +102,11 @@
             })
             .join('');
 
-          const recentSection = document.createElement('div');
-          recentSection.innerHTML = `
+          const profileHistory = document.getElementById('profile-history');
+          profileHistory.innerHTML = `
             <h3 style="margin-top: 20px; color: #1db954;">Recent Listening History</h3>
             <ul style="list-style: none; padding: 0; font-size: 14px;">${historyList}</ul>
           `;
-
-          profileInfoDiv.appendChild(recentSection);
 
           const songCounts = {}, albumCounts = {}, artistCounts = {};
           history.forEach(track => {
@@ -111,21 +127,20 @@
           const [mostPlayedAlbum, mostPlayedAlbumCount] = getMostPlayed(albumCounts);
           const [mostPlayedArtist, mostPlayedArtistCount] = getMostPlayed(artistCounts);
 
-          const statsSection = document.createElement('div');
-          statsSection.innerHTML = `
+          const profileStats = document.getElementById('profile-stats');
+          profileStats.innerHTML = `
             <h3 style="margin-top: 20px; color: #1db954;">Listening Stats</h3>
             <div>Total Songs Listened: ${totalSongs}</div>
             <div>Most Played Song: ${mostPlayedSong || 'N/A'} (${mostPlayedSongCount} play${mostPlayedSongCount !== 1 ? 's' : ''})</div>
             <div>Most Played Album: ${mostPlayedAlbum || 'N/A'} (${mostPlayedAlbumCount} play${mostPlayedAlbumCount !== 1 ? 's' : ''})</div>
             <div>Most Played Artist: ${mostPlayedArtist || 'N/A'} (${mostPlayedArtistCount} play${mostPlayedArtistCount !== 1 ? 's' : ''})</div>
           `;
-
-          profileInfoDiv.appendChild(statsSection);
+          
         } else {
           const noHistory = document.createElement('div');
           noHistory.textContent = 'No listening history available.';
           noHistory.style.marginTop = '20px';
-          profileInfoDiv.appendChild(noHistory);
+          document.getElementById('profile-history').appendChild(noHistory);
         }
       })
       .catch(() => {
