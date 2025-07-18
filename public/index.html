@@ -486,6 +486,11 @@
       </button>
     </div>
   </div>
+  
+  <div id="user-info" style="display: none; visibility: hidden; height: 0; width: 0; overflow: hidden;">
+    <span id="username-display"></span>
+    <img id="user-pic" />
+  </div>
 
   <script>
     let albums = [];
@@ -1021,7 +1026,7 @@
 
       if (token) {
         fetch('/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
           .then(res => {
             if (!res.ok) throw new Error('Not logged in');
@@ -1030,11 +1035,32 @@
           .then(profile => {
             console.log('Adding user info and logout button...');
             console.log('Logged in as:', profile.username);
+            document.getElementById('username-display').textContent = `Logged in as: ${profile.username}`;
+            if (profile.profilePicture) {
+              document.getElementById('user-pic').src = profile.profilePicture;
+            }
 
             // Create user info display
             const userInfo = document.createElement('div');
             userInfo.style.color = 'white';
+            userInfo.style.display = 'flex';
+            userInfo.style.alignItems = 'center';
+            userInfo.style.gap = '10px';
+
+            const userText = document.createElement('span');
             userInfo.textContent = `Logged in as: ${profile.username}`;
+
+            const userImg = document.createElement('img');
+            userImg.src = profile.profilePicture || '';
+            userImg.alt = 'Profile picture';
+            userImg.style.width = '32px';
+            userImg.style.height = '32px';
+            userImg.style.borderRadius = '50%';
+            userImg.style.objectFit = 'cover';
+            userImg.style.border = '1px solid #333';
+
+            userInfo.appendChild(userText);
+            if (profile.profilePicture) userInfo.appendChild(userImg);
 
             // Create logout button
             const logoutButton = document.createElement('button');
@@ -1064,6 +1090,7 @@
             userContainer.style.right = '20px';
             userContainer.style.zIndex = '9999';
             userContainer.appendChild(userInfo);
+            userContainer.appendChild(userImg);
             userContainer.appendChild(logoutButton);
 
             // Add to the page

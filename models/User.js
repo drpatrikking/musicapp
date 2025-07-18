@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
       albumName: String,
       artistName: String,
       playedAt: { type: Date, default: Date.now }
-    }]
+    }],
+    profilePicture: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

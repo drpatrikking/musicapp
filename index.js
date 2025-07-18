@@ -21,6 +21,7 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
+app.use(express.json({ limit: '5mb' }));
 
 mongoose.connect('mongodb://localhost:27017/musicapp', {
   useNewUrlParser: true,
@@ -28,6 +29,21 @@ mongoose.connect('mongodb://localhost:27017/musicapp', {
 })
 .then(() => console.log('✅ Connected to MongoDB'))
 .catch(err => console.error(err));
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    console.error('Token verification failed:', err);
+    res.sendStatus(403);
+  }
+}
 
 async function getAlbums(dir) {
   const albumsMap = {};
@@ -179,6 +195,27 @@ app.post('/track-play', async (req, res) => {
   }
 });
 
+app.post('/upload-profile-picture', authenticateToken, async (req, res) => {
+  const { base64 } = req.body;
+
+  if (!base64 || !base64.startsWith('data:image')) {
+    return res.status(400).json({ error: 'Invalid image data' });
+  }
+
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.sendStatus(404);
+
+    user.profilePicture = base64;
+    await user.save();
+
+    res.json({ profilePicture: user.profilePicture });
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
 app.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
@@ -197,14 +234,16 @@ app.get('/profile', async (req, res) => {
       userId: user._id,
       username: user.username,
       createdAt: user.createdAt,
-      listeningHistoryCount: user.listeningHistory?.length
+      listeningHistoryCount: user.listeningHistory?.length,
+      profilePicture: user.profilePicture
     });
 
     res.json({
       userId: user._id,
       username: user.username,
       createdAt: user.createdAt || null,
-      listeningHistory: user.listeningHistory
+      listeningHistory: user.listeningHistory,
+      profilePicture: user.profilePicture
     });
   } catch (e) {
     console.error('Token verification failed or DB error:', e.message);

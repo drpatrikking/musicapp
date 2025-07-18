@@ -59,6 +59,11 @@
       <hr class="divider" />
       <div id="profile-stats"></div>
     </div>
+    <div class="profile-picture-section" style="margin-top: 30px;">
+      <h3>Change Profile Picture</h3>
+      <input type="file" id="pic-input" accept="image/*" />
+      <button id="upload-btn">Upload Picture</button>
+    </div>
   </div>
 
   <script>
@@ -135,7 +140,7 @@
             <div>Most Played Album: ${mostPlayedAlbum || 'N/A'} (${mostPlayedAlbumCount} play${mostPlayedAlbumCount !== 1 ? 's' : ''})</div>
             <div>Most Played Artist: ${mostPlayedArtist || 'N/A'} (${mostPlayedArtistCount} play${mostPlayedArtistCount !== 1 ? 's' : ''})</div>
           `;
-          
+
         } else {
           const noHistory = document.createElement('div');
           noHistory.textContent = 'No listening history available.';
@@ -151,6 +156,44 @@
       alert('Not logged in. Redirecting to login.');
       window.location.href = '/login';
     }
+  
+    document.getElementById('upload-btn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('pic-input');
+      const file = fileInput.files[0];
+      if (!file) return alert('Please select a file.');
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result;
+        const token = localStorage.getItem('token');
+
+        const res = await fetch('/upload-profile-picture', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ base64 })
+        });
+
+        const data = await res.json();
+        document.getElementById('preview-pic').src = data.profilePicture;
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    fetch('/profile', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(res => res.json())
+    .then(profile => {
+      if (profile.profilePicture) {
+        document.getElementById('preview-pic').src = profile.profilePicture;
+      }
+    });
   </script>
 </body>
 </html>
