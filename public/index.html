@@ -602,10 +602,23 @@
       const content = document.getElementById('tracklist-content');
       const orderedTracks = [];
 
+      const totalSeconds = album.tracks.reduce((sum, track) => {
+        if (typeof track.duration === 'number') return sum + track.duration;
+        if (typeof track.duration === 'string') return sum + parseDurationString(track.duration);
+        return sum;
+      }, 0);
+
+      const formattedDuration = formatDuration(totalSeconds);
+
       content.innerHTML = `
         <h2 style="text-align: center;">${album.album} – ${album.artist}</h2>
         <div style="text-align: center; margin: 16px 0;">
-          <img src="${album.cover || 'https://via.placeholder.com/300?text=♪'}" alt="${album.album}" style="max-width: 300px; width: 80%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" />
+          <img src="${album.cover || 'https://via.placeholder.com/300?text=♪'}" 
+               alt="${album.album}" 
+               style="max-width: 300px; width: 80%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" />
+          <div style="margin-top: 8px; color: #aaa;">
+            Album duration: ${formattedDuration}
+          </div>
         </div>
         <div class="tracklist-wrapper">
           <div class="tracklist-table">
@@ -768,6 +781,20 @@
       } else {
         alert('Album not found.');
       }
+    }
+
+    function formatDuration(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      return `${h > 0 ? h + ':' : ''}${h > 0 && m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function parseDurationString(str) {
+      const parts = str.split(':').map(Number);
+      if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      if (parts.length === 2) return parts[0] * 60 + parts[1];
+      return 0;
     }
 
     document.addEventListener('click', e => {
