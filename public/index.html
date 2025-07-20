@@ -1049,15 +1049,17 @@
 
             const userText = document.createElement('span');
             userInfo.textContent = `Logged in as: ${profile.username}`;
+            userText.style.lineHeight = '32px';
 
             const userImg = document.createElement('img');
             userImg.src = profile.profilePicture || '';
             userImg.alt = 'Profile picture';
-            userImg.style.width = '32px';
-            userImg.style.height = '32px';
+            userImg.style.width = '45px';
+            userImg.style.height = '45px';
             userImg.style.borderRadius = '50%';
             userImg.style.objectFit = 'cover';
             userImg.style.border = '1px solid #333';
+            userImg.style.flexShrink = '0';
 
             userInfo.appendChild(userText);
             if (profile.profilePicture) userInfo.appendChild(userImg);
