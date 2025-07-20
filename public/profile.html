@@ -63,6 +63,7 @@
       <h3>Change Profile Picture</h3>
       <input type="file" id="pic-input" accept="image/*" />
       <button id="upload-btn">Upload Picture</button>
+      <img id="preview-pic" style="margin-top: 10px; max-width: 150px; border-radius: 8px;" />
     </div>
   </div>
 
@@ -193,6 +194,19 @@
       if (profile.profilePicture) {
         document.getElementById('preview-pic').src = profile.profilePicture;
       }
+    });
+
+    document.getElementById('pic-input').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const preview = document.getElementById('preview-pic');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
     });
   </script>
 </body>
