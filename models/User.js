@@ -9,7 +9,22 @@ const userSchema = new mongoose.Schema({
       artistName: String,
       playedAt: { type: Date, default: Date.now }
     }],
-    profilePicture: { type: String, default: '' }
+    profilePicture: { type: String, default: '' },
+    playlists: [
+      {
+        name: String,
+        tracks: [
+          {
+            title: String,
+            artist: String,
+            album: String,
+            cover: String,
+            url: String,
+            duration: Number
+          }
+        ]
+      }
+    ]
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

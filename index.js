@@ -21,7 +21,7 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '50mb' }));
 
 mongoose.connect('mongodb://localhost:27017/musicapp', {
   useNewUrlParser: true,
@@ -216,6 +216,27 @@ app.post('/upload-profile-picture', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/playlists', authenticateToken, async (req, res) => {
+  const { name } = req.body;
+  const user = await User.findById(req.user.userId);
+  if (!user) return res.sendStatus(404);
+
+  user.playlists.push({ name, tracks: [] });
+  await user.save();
+  res.json(user.playlists);
+});
+
+app.post('/playlists/:index/add', authenticateToken, async (req, res) => {
+  const { index } = req.params;
+  const track = req.body;
+  const user = await User.findById(req.user.userId);
+  if (!user || !user.playlists[index]) return res.sendStatus(404);
+
+  user.playlists[index].tracks.push(track);
+  await user.save();
+  res.json(user.playlists[index]);
+});
+
 app.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
@@ -290,6 +311,12 @@ app.get('/leaderboard', async (req, res) => {
     console.error('Leaderboard route error:', e.message);
     res.sendStatus(403);
   }
+});
+
+app.get('/playlists', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.userId);
+  if (!user) return res.sendStatus(404);
+  res.json(user.playlists);
 });
 
 app.listen(3000, () => console.log('Server running at http://localhost:3000'));
