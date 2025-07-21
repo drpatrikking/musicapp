@@ -525,6 +525,8 @@
     display: none;
     box-shadow: 2px -2px 8px rgba(0,0,0,0.5);
     z-index: 9999;
+    border-radius: 12px;
+    overflow: hidden;
   ">
     <h3 style="margin-top: 0;">Your Playlists</h3>
     <ul id="user-playlists" style="list-style: none; padding: 0; margin: 0;"></ul>
@@ -703,7 +705,9 @@
                           <div class="track-number">${track.track || i + 1}</div>
                           <div class="track-title">${track.title}</div>
                           <div class="track-artist">${track.artist}</div>
-                          <div class="track-duration">${track.duration || ''}</div>
+                          <div class="track-duration">${
+                            typeof track.duration === 'number' ? formatDuration(track.duration) : track.duration || ''
+                          }</div>
                         </div>
                       `;
                     }).join('')}
