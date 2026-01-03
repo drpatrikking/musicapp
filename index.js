@@ -27,7 +27,7 @@ mongoose.connect('mongodb://localhost:27017/musicapp', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('✅ Connected to MongoDB'))
+.then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error(err));
 
 function authenticateToken(req, res, next) {
@@ -128,7 +128,7 @@ async function getAlbums(dir) {
       });
 
     } catch (err) {
-      console.warn(`⚠️ Metadata error in ${filePath}: ${err.message}`);
+      console.warn(`Metadata error in ${filePath}: ${err.message}`);
     }
   }
 
@@ -283,10 +283,10 @@ app.get('/login', (req, res) => {
 app.get('/api/albums', async (req, res) => {
   try {
     const albums = await getAlbums(musicDir);
-    console.log(`📀 Found ${albums.length} album(s)`);
+    console.log(`Found ${albums.length} album(s)`);
     res.json(albums);
   } catch (err) {
-    console.error('❌ Failed to load albums:', err);
+    console.error('Failed to load albums:', err);
     res.status(500).json({ error: 'Could not load albums' });
   }
 });

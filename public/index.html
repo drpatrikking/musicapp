@@ -393,6 +393,27 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    #user-playlists li {
+      margin-bottom: 6px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    #user-playlists li:hover {
+      background-color: #1db954;
+    }
+
+    #playlist-toggle {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    #playlist-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
   </style>
 </head>
 
@@ -500,16 +521,33 @@
     background: #1db954;
     color: white;
     border: none;
-    border-radius: 50%;
-    width: 40px;
+    border-radius: 20px;
     height: 40px;
+    padding: 0 14px;
+    gap: 8px;
     font-size: 22px;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
     cursor: pointer;
   ">
-    🎵
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="white"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="15" y2="12"></line>
+      <line x1="3" y1="18" x2="9" y2="18"></line>
+    </svg>
+
+    <span>Playlists</span>
   </div>
 
   <div id="playlist-sidebar" style="
@@ -529,6 +567,7 @@
     overflow: hidden;
   ">
     <h3 style="margin-top: 0;">Your Playlists</h3>
+    <hr class="rounded">
     <ul id="user-playlists" style="list-style: none; padding: 0; margin: 0;"></ul>
     <button id="create-playlist" style="margin-top: 10px; background: #1db954; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer;">+ New Playlist</button>
   </div>
