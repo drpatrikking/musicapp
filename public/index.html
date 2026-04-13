@@ -526,25 +526,23 @@
     padding: 0 14px;
     gap: 8px;
     font-size: 22px;
-    font-weight: 600;
+    font-weight: 300;
     display: flex;
     align-items: center;
     cursor: pointer;
+    user-select: none;
   ">
     <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="22"
-      height="22"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="white"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="12" x2="15" y2="12"></line>
-      <line x1="3" y1="18" x2="9" y2="18"></line>
+      <path d="M16 5H4V7H16V5Z" fill="currentColor" />
+      <path d="M16 9H4V11H16V9Z" fill="currentColor" />
+      <path d="M4 13H12V15H4V13Z" fill="currentColor" />
+      <path d="M20 16L14 13V19L20 16Z" fill="currentColor" />
     </svg>
 
     <span>Playlists</span>
@@ -565,6 +563,7 @@
     z-index: 9999;
     border-radius: 12px;
     overflow: hidden;
+    user-select: none;
   ">
     <h3 style="margin-top: 0;">Your Playlists</h3>
     <hr class="rounded">
