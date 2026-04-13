@@ -643,6 +643,18 @@
           cursor: pointer;
         "
       >
+      <button id="reset-mini-player-color" style="
+        margin-top: 10px;
+        width: 100%;
+        padding: 6px;
+        background: #2a2a2a;
+        border: 1px solid #555;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+      ">
+        Reset to default
+      </button>
     </div>
   </div>
 
@@ -1490,6 +1502,14 @@
 
       //Save color
       localStorage.setItem('miniPlayerColor', color);
+    });
+
+    const resetButton = document.getElementById('reset-mini-player-color');
+    const DEFAULT_COLOR = '#191919';
+    resetButton.addEventListener('click', () => {
+      miniPlayer.style.backgroundColor = DEFAULT_COLOR;
+      colorPicker.value = DEFAULT_COLOR;
+      localStorage.removeItem('miniPlayerColor');
     });
   </script>
 </body>
