@@ -10,3 +10,6 @@ yarn-error.log
 .DS_Store
 
 .idea
+
+# Node modules
+node_modules
