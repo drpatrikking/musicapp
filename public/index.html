@@ -428,7 +428,7 @@
     </div>
   </div>
 
-  <h1>My Music Library</h1>
+  <h1 style="user-select: none;">My Music Server</h1>
 
   <div class="search-wrapper">
     <div class="search-icon-container">
@@ -456,9 +456,10 @@
     </button>
   </div>
 
+  <h2 style ="user-select: none;">Browse by Album</h2>
   <div class="grid" id="album-grid"></div>
   <div id="artist-section">
-    <h2>Browse by Artist</h2>
+    <h2 style ="user-select: none;">Browse by Artist</h2>
     <div class="grid" id="artist-grid"></div>
   </div>
 
@@ -505,6 +506,24 @@
           <path d="M21 12V15C21 16.1046 20.1046 17 19 17H7V20L2 16L7 12V15H19V9H14" />
         </svg>
       </button>
+
+      <button id="settings-button" class="icon-button" title="Settings">
+        <svg
+          width="20"
+          height="20"
+          viewbox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M14 11H10V13H14V11Z" fill="currentColor" />
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M7 5V4C7 2.89545 7.89539 2 9 2H15C16.1046 2 17 2.89545 17 4V5H20C21.6569 5 23 6.34314 23 8V18C23 19.6569 21.6569 21 20 21H4C2.34314 21 1 19.6569 1 18V8C1 6.34314 2.34314 5 4 5H7ZM9 4H15V5H9V4ZM4 7C3.44775 7 3 7.44769 3 8V14H21V8C21 7.44769 20.5522 7 20 7H4ZM3 18V16H21V18C21 18.5523 20.5522 19 20 19H4C3.44775 19 3 18.5523 3 18Z"
+            fill="currentColor"
+           />
+         </svg>
+      </button>
     </div>
   </div>
   
@@ -515,7 +534,7 @@
 
   <div id="playlist-toggle" style="
     position: fixed;
-    bottom: 20px;
+    bottom: 70px;
     left: 20px;
     z-index: 10000;
     background: #1db954;
@@ -550,10 +569,10 @@
 
   <div id="playlist-sidebar" style="
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 200px;
-    height: 50%;
+    bottom: 120px;
+    left: 20px;
+    width: 220px;
+    height: auto;
     background-color: #181818;
     color: white;
     padding: 12px;
@@ -1120,13 +1139,50 @@
     });
 
     document.getElementById('next-button').addEventListener('click', () => {
-      if (
-        currentAlbumTracks.length &&
-        currentTrackIndex >= 0 &&
-        currentTrackIndex < currentAlbumTracks.length - 1
-      ) {
+      if (!currentAlbumTracks.length) return;
+
+      //Repeat
+      if (isRepeat) {
+        const current = currentAlbumTracks[currentTrackIndex];
+        playInMiniPlayer(
+          current.url,
+          current.title,
+          current.artist || '',
+          current.album || '',
+          current.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
+        return;
+      }
+
+      //Shuffle
+      if (isShuffle) {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * currentAlbumTracks.length);
+        } while (randomIndex === currentTrackIndex && currentAlbumTracks.length > 1);
+
+        currentTrackIndex = randomIndex;
+        const next = currentAlbumTracks[currentTrackIndex];
+
+        playInMiniPlayer(
+          next.url,
+          next.title,
+          next.artist || '',
+          next.album || '',
+          next.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
+        return;
+      }
+
+      //Without repeat or shuffle
+      if (currentTrackIndex < currentAlbumTracks.length - 1) {
         currentTrackIndex++;
         const next = currentAlbumTracks[currentTrackIndex];
+
         playInMiniPlayer(
           next.url,
           next.title,
@@ -1140,12 +1196,50 @@
     });
 
     document.getElementById('prev-button').addEventListener('click', () => {
-      if (
-        currentAlbumTracks.length &&
-        currentTrackIndex > 0
-      ) {
+      if (!currentAlbumTracks.length) return;
+
+      //Repeat
+      if (isRepeat) {
+        const current = currentAlbumTracks[currentTrackIndex];
+        playInMiniPlayer(
+          current.url,
+          current.title,
+          current.artist || '',
+          current.album || '',
+          current.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
+        return;
+      }
+
+      //Shuffle
+      if (isShuffle) {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * currentAlbumTracks.length);
+        } while (randomIndex === currentTrackIndex && currentAlbumTracks.length > 1);
+
+        currentTrackIndex = randomIndex;
+        const prev = currentAlbumTracks[currentTrackIndex];
+
+        playInMiniPlayer(
+          prev.url,
+          prev.title,
+          prev.artist || '',
+          prev.album || '',
+          prev.cover || '',
+          currentTrackIndex,
+          currentAlbumTracks
+        );
+        return;
+      }
+
+      //Without repeat or shuffle
+      if (currentTrackIndex > 0) {
         currentTrackIndex--;
         const prev = currentAlbumTracks[currentTrackIndex];
+
         playInMiniPlayer(
           prev.url,
           prev.title,
