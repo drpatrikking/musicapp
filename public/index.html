@@ -590,6 +590,62 @@
     <button id="create-playlist" style="margin-top: 10px; background: #1db954; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer;">+ New Playlist</button>
   </div>
 
+  <div id="settings-modal" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000;
+  ">
+    <div style="
+      position: relative;
+      background: #121212;
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      max-width: 90%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    ">
+      <button id="close-settings" style="
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+      ">
+        ✕
+      </button>
+      <h3 style="margin-top: 0;">Settings</h3>
+      <p>Put your settings here</p>
+      <label style="display:block; margin-top:10px;">
+        Mini Player Color:
+      </label>
+
+      <input
+        type="color"
+        id="mini-player-color"
+        value="#1db954"
+        style="
+          margin-top: 5px;
+          width: 100%;
+          height: 40px;
+          border: none;
+          background: none;
+          cursor: pointer;
+        "
+      >
+    </div>
+  </div>
+
   <script>
     let albums = [];
     let currentAlbumTracks = [];
@@ -1402,6 +1458,39 @@
     });
 
     loadAlbums();
+
+    const settingsButton = document.getElementById('settings-button');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeSettings = document.getElementById('close-settings');
+
+    //Open settings
+    settingsButton.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+    });
+
+    //Close settings
+    closeSettings.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+
+    const colorPicker = document.getElementById('mini-player-color');
+    const miniPlayer = document.getElementById('mini-player');
+
+    //Load saved color
+    const savedColor = localStorage.getItem('miniPlayerColor');
+    if (savedColor) {
+      miniPlayer.style.backgroundColor = savedColor;
+      colorPicker.value = savedColor;
+    }
+
+    //Chage color in real time
+    colorPicker.addEventListener('input', (e) => {
+      const color = e.target.value;
+      miniPlayer.style.backgroundColor = color;
+
+      //Save color
+      localStorage.setItem('miniPlayerColor', color);
+    });
   </script>
 </body>
 
