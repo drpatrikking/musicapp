@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Music Library</title>
+  <title>My Music App</title>
   <style>
     body {
       background-color: #111;
@@ -491,7 +491,7 @@
         </svg>
       </button>
 
-      <audio id="global-player" controls></audio>
+      <audio id="global-player" controls crossorigin="anonymous"></audio>
 
       <button id="next-button" class="icon-button" title="Next track">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -625,7 +625,6 @@
         ✕
       </button>
       <h3 style="margin-top: 0;">Settings</h3>
-      <p>Put your settings here</p>
       <label style="display:block; margin-top:10px;">
         Mini Player Color:
       </label>
@@ -655,9 +654,67 @@
       ">
         Reset to default
       </button>
+
+      <button id="visualizer" style="
+        margin-top: 10px;
+        width: 100%;
+        padding: 6px;
+        background: #2a2a2a;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+      ">
+        Visualizer
+      </button>
     </div>
   </div>
 
+  <div id="visualizer-window" style="
+    position: fixed;
+    top: 100px;
+    left: 100px;
+    width: 500px;
+    height: 300px;
+    background: black;
+    border: 1px solid #555;
+    border-radius: 8px;
+    display: none;
+    z-index: 30000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+  ">
+    <div id="viz-header" style="
+      background: #222;
+      color: white;
+      padding: 6px 10px;
+      cursor: move;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">
+      <span>Visualizer</span>
+      <button id="close-viz" style="
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+      ">✕</button>
+    </div>
+    <div id="viz-loading" style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 14px;
+      pointer-events: none;
+    ">
+      Please wait… Visualizer is starting
+    </div>
+    <canvas id="visualizer-canvas" width="500" height="260"></canvas>
+  </div>
+
+  <script src="https://unpkg.com/butterchurn"></script>
+  <script src="https://unpkg.com/butterchurn-presets"></script>
   <script>
     let albums = [];
     let currentAlbumTracks = [];
@@ -885,7 +942,10 @@
       const bar = document.getElementById('mini-player');
       const coverImg = document.getElementById('mini-cover');
 
+      player.crossOrigin = "anonymous";
+
       player.src = url;
+      player.load();
       player.play();
 
       player.onTimeUpdateHandler && player.removeEventListener('timeupdate', player.onTimeUpdateHandler);
@@ -1510,6 +1570,103 @@
       miniPlayer.style.backgroundColor = DEFAULT_COLOR;
       colorPicker.value = DEFAULT_COLOR;
       localStorage.removeItem('miniPlayerColor');
+    });
+
+    const vizButton = document.getElementById('visualizer');
+    const vizWindow = document.getElementById('visualizer-window');
+    const closeViz = document.getElementById('close-viz');
+    const audio = document.getElementById('global-player');
+
+    let visualizer;
+    let audioContext;
+    let analyser;
+
+    vizButton.addEventListener('click', async () => {
+      vizWindow.style.display = 'block';
+
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      if (!visualizer) {
+        initVisualizer();
+      }
+    });
+
+    closeViz.addEventListener('click', () => {
+      vizWindow.style.display = 'none';
+    });
+
+    let sourceNode;
+
+    function initVisualizer() {
+      const canvas = document.getElementById('visualizer-canvas');
+      const loadingText = document.getElementById('viz-loading');
+
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (sourceNode) {
+       try { sourceNode.disconnect(); } catch {}
+       sourceNode = null;
+      }
+
+      sourceNode = audioContext.createMediaElementSource(audio);
+      sourceNode.connect(audioContext.destination);
+
+      const bc = butterchurn.default || butterchurn;
+
+      visualizer = bc.createVisualizer(audioContext, canvas, {
+        width: canvas.width,
+        height: canvas.height,
+      });
+
+      visualizer.connectAudio(sourceNode);
+
+      const presets = butterchurnPresets.getPresets();
+      const presetKeys = Object.keys(presets);
+      visualizer.loadPreset(presets[presetKeys[0]], 0.0);
+
+      function render() {
+        requestAnimationFrame(render);
+        visualizer.render();
+        if (loadingText) loadingText.style.display = 'none';
+      }
+
+      render();
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      console.log('MAX:', Math.max(...data));
+    }
+
+    const header = document.getElementById('viz-header');
+
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    header.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - vizWindow.offsetLeft;
+      offsetY = e.clientY - vizWindow.offsetTop;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        vizWindow.style.left = (e.clientX - offsetX) + 'px';
+        vizWindow.style.top = (e.clientY - offsetY) + 'px';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
     });
   </script>
 </body>
