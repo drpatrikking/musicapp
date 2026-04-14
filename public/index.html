@@ -414,6 +414,27 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
+
+    #viz-preset-list li {
+      padding: 7px 14px;
+      font-size: 12px;
+      color: #ccc;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #viz-preset-list li:hover {
+      background: #2a2a2a;
+      color: white;
+    }
+
+    #viz-preset-list li.active {
+      background: #1db954;
+      color: white;
+    }
+    #viz-prev:hover, #viz-next:hover, #viz-random:hover { background: #444 !important; }
   </style>
 </head>
 
@@ -690,8 +711,57 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+      user-select: none;
     ">
-      <span>Visualizer</span>
+      <span style="font-size: 13px; white-space: nowrap;">Visualizer</span>
+      <div style="display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; position: relative;">
+        <button id="viz-prev" title="Previous preset" style="
+          background: #333; border: none; color: white; border-radius: 50%;
+          width: 24px; height: 24px; cursor: pointer; font-size: 14px;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        ">‹</button>
+
+        <button id="viz-preset-name" title="Browse presets" style="
+          background: #1a1a1a; border: 1px solid #444; color: #ccc;
+          border-radius: 12px; padding: 3px 10px; font-size: 11px;
+          cursor: pointer; white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; max-width: 200px;
+        ">Select preset</button>
+
+        <button id="viz-next" title="Next preset" style="
+          background: #333; border: none; color: white; border-radius: 50%;
+          width: 24px; height: 24px; cursor: pointer; font-size: 14px;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        ">›</button>
+
+        <button id="viz-random" title="Random preset" style="
+          background: #333; border: none; color: white; border-radius: 50%;
+          width: 24px; height: 24px; cursor: pointer; font-size: 15px;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        ">⇄</button>
+
+        <div id="viz-preset-panel" style="
+          display: none; position: absolute; top: 32px; left: 50%;
+          transform: translateX(-50%); background: #181818;
+          border: 1px solid #444; border-radius: 8px; width: 280px;
+          max-height: 260px; z-index: 40000; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+          overflow: hidden; flex-direction: column;
+        ">
+          <div style="padding: 8px;">
+            <input id="viz-preset-search" type="text" placeholder="Search presets…" style="
+              width: 100%; box-sizing: border-box; background: #111;
+              border: 1px solid #555; color: white; border-radius: 6px;
+              padding: 6px 10px; font-size: 12px; outline: none;
+            " />
+          </div>
+          <ul id="viz-preset-list" style="
+            list-style: none; margin: 0; padding: 4px 0;
+            overflow-y: auto; max-height: 200px;
+          "></ul>
+        </div>
+      </div>
+
       <button id="close-viz" style="
         background: none;
         border: none;
@@ -1577,31 +1647,100 @@
     const closeViz = document.getElementById('close-viz');
     const audio = document.getElementById('global-player');
 
-    let visualizer;
-    let audioContext;
-    let analyser;
+    let visualizer, audioContext, sourceNode;
+    let presetKeys = [];
+    let allPresets = {};
+    let currentPresetIndex = 0;
+
+    function loadPresetByIndex(index, transition = 2.7) {
+      if (!visualizer || !presetKeys.length) return;
+      currentPresetIndex = ((index % presetKeys.length) + presetKeys.length) % presetKeys.length;
+      visualizer.loadPreset(allPresets[presetKeys[currentPresetIndex]], transition);
+
+      // Update name button
+      const nameBtn = document.getElementById('viz-preset-name');
+      if (nameBtn) nameBtn.textContent = presetKeys[currentPresetIndex];
+
+      // Highlight active item in list
+      document.querySelectorAll('#viz-preset-list li').forEach((li, i) => {
+        li.classList.toggle('active', i === currentPresetIndex);
+        if (i === currentPresetIndex) li.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    function buildPresetList(filter = '') {
+      const list = document.getElementById('viz-preset-list');
+      list.innerHTML = '';
+      const lower = filter.toLowerCase();
+      presetKeys.forEach((name, i) => {
+        if (lower && !name.toLowerCase().includes(lower)) return;
+        const li = document.createElement('li');
+        li.textContent = name;
+        if (i === currentPresetIndex) li.classList.add('active');
+        li.addEventListener('click', () => {
+          loadPresetByIndex(i);
+          closePresetPanel();
+        });
+        list.appendChild(li);
+      });
+    }
+
+    function openPresetPanel() {
+      const panel = document.getElementById('viz-preset-panel');
+      panel.style.display = 'flex';
+      buildPresetList();
+      setTimeout(() => document.getElementById('viz-preset-search')?.focus(), 50);
+    }
+
+    function closePresetPanel() {
+      document.getElementById('viz-preset-panel').style.display = 'none';
+    }
+
+    document.getElementById('viz-preset-name').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById('viz-preset-panel');
+      if (panel.style.display === 'flex') closePresetPanel();
+      else openPresetPanel();
+    });
+
+    document.getElementById('viz-preset-search').addEventListener('input', (e) => {
+      buildPresetList(e.target.value);
+    });
+
+    document.getElementById('viz-prev').addEventListener('click', () => {
+      loadPresetByIndex(currentPresetIndex - 1);
+    });
+
+    document.getElementById('viz-next').addEventListener('click', () => {
+      loadPresetByIndex(currentPresetIndex + 1);
+    });
+
+    document.getElementById('viz-random').addEventListener('click', () => {
+      const randomIndex = Math.floor(Math.random() * presetKeys.length);
+      loadPresetByIndex(randomIndex);
+    });
+
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('viz-preset-panel').contains(e.target) &&
+          e.target.id !== 'viz-preset-name') {
+        closePresetPanel();
+      }
+    });
 
     vizButton.addEventListener('click', async () => {
       vizWindow.style.display = 'block';
-
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
-
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-
-      if (!visualizer) {
-        initVisualizer();
-      }
+      if (audioContext.state === 'suspended') await audioContext.resume();
+      if (!visualizer) initVisualizer();
     });
 
     closeViz.addEventListener('click', () => {
       vizWindow.style.display = 'none';
+      closePresetPanel();
     });
-
-    let sourceNode;
 
     function initVisualizer() {
       const canvas = document.getElementById('visualizer-canvas');
@@ -1615,44 +1754,38 @@
       }
 
       if (sourceNode) {
-       try { sourceNode.disconnect(); } catch {}
-       sourceNode = null;
+        try { sourceNode.disconnect(); } catch {}
+        sourceNode = null;
       }
 
       sourceNode = audioContext.createMediaElementSource(audio);
       sourceNode.connect(audioContext.destination);
 
       const bc = butterchurn.default || butterchurn;
-
       visualizer = bc.createVisualizer(audioContext, canvas, {
         width: canvas.width,
-        height: canvas.height,
+        height: canvas.height
       });
-
       visualizer.connectAudio(sourceNode);
 
-      const presets = butterchurnPresets.getPresets();
-      const presetKeys = Object.keys(presets);
-      visualizer.loadPreset(presets[presetKeys[0]], 0.0);
+      allPresets = butterchurnPresets.getPresets();
+      presetKeys = Object.keys(allPresets).sort();
+      loadPresetByIndex(0, 0);
 
       function render() {
         requestAnimationFrame(render);
         visualizer.render();
         if (loadingText) loadingText.style.display = 'none';
       }
-
       render();
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(data);
-      console.log('MAX:', Math.max(...data));
     }
 
+    // Dragging
     const header = document.getElementById('viz-header');
-
-    let isDragging = false;
-    let offsetX, offsetY;
+    let isDragging = false, offsetX, offsetY;
 
     header.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button') || e.target.closest('#viz-preset-panel') || e.target.closest('input')) return;
       isDragging = true;
       offsetX = e.clientX - vizWindow.offsetLeft;
       offsetY = e.clientY - vizWindow.offsetTop;
@@ -1661,13 +1794,11 @@
     document.addEventListener('mousemove', (e) => {
       if (isDragging) {
         vizWindow.style.left = (e.clientX - offsetX) + 'px';
-        vizWindow.style.top = (e.clientY - offsetY) + 'px';
+        vizWindow.style.top  = (e.clientY - offsetY) + 'px';
       }
     });
 
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
+    document.addEventListener('mouseup', () => { isDragging = false; });
   </script>
 </body>
 
