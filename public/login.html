@@ -107,7 +107,7 @@
         console.log('Token received:', data.token);
         localStorage.setItem('token', data.token);
         alert('Logged in successfully');
-        window.location.href = 'http://localhost:3000/';
+        window.location.href = window.location.origin + '/';
       } else {
         alert(data.error);
       }

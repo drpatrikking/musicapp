@@ -17,7 +17,6 @@ const musicDir = "C:\\Users\\Asus\\Music\\MusicApp";
 const User = require('./models/User');
 
 app.use(express.static('public'));
-app.use(express.json());
 app.use(cors());
 app.use('/music', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');

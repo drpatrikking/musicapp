@@ -99,7 +99,7 @@
 
       if (data.message) {
         alert(data.message);
-        window.location.href = '/'; // redirect to music app homepage
+        window.location.href = window.location.origin + '/'; // redirect to music app homepage
       } else {
         alert(data.error);
       }

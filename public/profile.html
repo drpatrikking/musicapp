@@ -168,17 +168,37 @@
         const base64 = reader.result;
         const token = localStorage.getItem('token');
 
-        const res = await fetch('/upload-profile-picture', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ base64 })
-        });
+        try {
+          const res = await fetch('/upload-profile-picture', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ base64 })
+          });
 
-        const data = await res.json();
-        document.getElementById('preview-pic').src = data.profilePicture;
+          if (res.status === 413) {
+            alert('Error: Image is too large. Please choose a smaller file.');
+            return;
+          }
+
+          if (!res.ok) {
+            alert(`Error: Server returned ${res.status}.`);
+            return;
+          }
+
+          const data = await res.json();
+          if (data.profilePicture) {
+            document.getElementById('preview-pic').src = data.profilePicture;
+            alert('Profile picture updated successfully!');
+          } else {
+            alert('Error: ' + (data.error || 'Failed to upload profile picture.'));
+          }
+
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
       };
 
       reader.readAsDataURL(file);
