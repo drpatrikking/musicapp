@@ -435,6 +435,177 @@
       color: white;
     }
     #viz-prev:hover, #viz-next:hover, #viz-random:hover { background: #444 !important; }
+
+    /*Mobile view*/
+    @media (max-width: 600px) {
+
+      body {
+        padding: 12px;
+        padding-bottom: 140px;
+      }
+
+      h1 { font-size: 20px; }
+      h2 { font-size: 16px; }
+
+      /*Album and artist grid*/
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .album-card img {
+        height: 130px;
+      }
+
+      .album-name { font-size: 12px; }
+      .album-artist { font-size: 11px; }
+
+      /*Search bar*/
+      #search {
+        font-size: 14px;
+        padding: 10px 10px 10px 36px;
+      }
+
+      /*Tracklist*/
+      .track-row {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .track-title {
+        font-size: 14px;
+        white-space: normal;
+        word-break: break-word;
+        flex-basis: 100%;
+      }
+
+      .track-artist {
+        font-size: 12px;
+        margin-left: 0;
+        color: #aaa;
+      }
+
+      .track-duration {
+        font-size: 12px;
+        margin-left: auto;
+      }
+
+      .track-number {
+        font-size: 12px;
+        width: 20px;
+        margin-right: 8px;
+      }
+
+      .track-cover {
+        width: 36px;
+        height: 36px;
+      }
+
+      /*Mini player*/
+      #mini-player {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 12px 10px;
+        gap: 6px;
+      }
+
+      /*Bar*/
+      #mini-player > img,
+      #mini-player > div:first-of-type {
+        display: inline-block;
+      }
+
+      #mini-cover {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+      }
+
+      #now-playing {
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        margin-left: 8px;
+        flex: 1;
+      }
+
+      /*Controls*/
+      #mini-player > div:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+      }
+
+      #global-player {
+        width: 100%;
+        height: 32px;
+        order: 10;
+      }
+
+      #prev-button, #next-button,
+      #shuffle-button, #repeat-button,
+      #settings-button {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+      }
+
+      /*Playlist sidebar*/
+      #playlist-sidebar {
+        width: calc(100vw - 40px) !important;
+        left: 10px !important;
+        bottom: 155px !important;
+      }
+
+      #playlist-toggle {
+        bottom: 115px !important;
+      }
+
+      /*Hamburger*/
+      .hamburger-container {
+        top: 12px;
+        left: 12px;
+      }
+
+      /*Visualizer fullscreen view on mobile*/
+      #visualizer-window {
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+        border: none !important;
+      }
+
+      #visualizer-canvas {
+        width: 100% !important;
+        height: calc(100vh - 40px) !important;
+      }
+
+      /*Back buttons*/
+      #back-to-artist,
+      #back-to-home,
+      #back-to-homepage {
+        font-size: 13px;
+        padding: 8px 14px;
+      }
+
+      /*Tracklist album art*/
+      #tracklist-content img[style*="max-width: 300px"] {
+        width: 60% !important;
+      }
+
+      /*Settings modal*/
+      #settings-modal > div {
+        width: 90vw !important;
+        max-width: 90vw !important;
+        padding: 16px !important;
+      }
+    }
   </style>
 </head>
 
@@ -489,8 +660,10 @@
   </div>
 
   <div id="mini-player">
-    <img id="mini-cover" src="" alt="Cover">
-    <div id="now-playing">Now playing</div>
+    <div style="display: flex; align-items: center; width: 100%; min-width: 0;">
+      <img id="mini-cover" src="" alt="Cover">
+      <div id="now-playing">Now playing</div>
+    </div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <button id="shuffle-button" class="icon-button" title="Shuffle">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
