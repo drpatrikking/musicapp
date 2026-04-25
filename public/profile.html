@@ -191,6 +191,7 @@
           const data = await res.json();
           if (data.profilePicture) {
             document.getElementById('preview-pic').src = data.profilePicture;
+            localStorage.setItem('profilePicture', data.profilePicture);
             alert('Profile picture updated successfully!');
           } else {
             alert('Error: ' + (data.error || 'Failed to upload profile picture.'));

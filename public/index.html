@@ -1667,6 +1667,7 @@
             document.getElementById('username-display').textContent = `Logged in as: ${profile.username}`;
             if (profile.profilePicture) {
               document.getElementById('user-pic').src = profile.profilePicture;
+              localStorage.setItem('profilePicture', profile.profilePicture);
             }
 
             // Create user info display
@@ -1681,6 +1682,7 @@
             userText.style.lineHeight = '32px';
 
             const userImg = document.createElement('img');
+            userImg.id = 'user-pic';
             userImg.src = profile.profilePicture || '';
             userImg.alt = 'Profile picture';
             userImg.style.width = '45px';
@@ -1726,6 +1728,12 @@
 
             // Add to the page
             document.body.prepend(userContainer);
+            const cachedPic = localStorage.getItem('profilePicture');
+            if (cachedPic) {
+              const userPic = document.getElementById('user-pic');
+              if (userPic) userPic.src = cachedPic;
+            }
+
           })
           .catch(err => {
             console.log('Profile fetch failed:', err);
@@ -1972,6 +1980,13 @@
     });
 
     document.addEventListener('mouseup', () => { isDragging = false; });
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'profilePicture' && e.newValue) {
+        const avatar = document.getElementById('user-pic');
+        if (avatar) avatar.src = e.newValue;
+      }
+    });
   </script>
 </body>
 
